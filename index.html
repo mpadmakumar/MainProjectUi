@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lustre covering - Home</title>
+  <script src="https://js.stripe.com/v3/"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+     html, body {
+    scroll-behavior: smooth;
+     overflow-x: hidden;
+   }
+    body {
+      font-family: 'Poppins', sans-serif;
+    }
+    .fade-in { animation: fadeIn 1s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .slide-in-up { animation: slideInUp 0.8s ease-out forwards; opacity: 0; }
+    @keyframes slideInUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .delay-1 { animation-delay: 0.2s; }
+    .delay-2 { animation-delay: 0.4s; }
+    .delay-3 { animation-delay: 0.6s; }
+    .delay-4 { animation-delay: 0.8s; }
+
+    #mobile-menu { transition: transform 0.3s ease-in-out; }
+
+    /* Custom styles for product elements (converted from Bootstrap) */
+    .product-card-custom {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .product-card-custom:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    }
+    .product-card-image {
+        height: 180px;
+        object-fit: contain;
+    }
+    .btn-details-custom {
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    .btn-details-custom:hover {
+        transform: translateY(-2px);
+    }
+    .product-detail-card-custom {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+    }
+    @media (max-width: 767px) {
+      .product-detail-card-custom {
+        flex-direction: column;
+      }
+      .product-detail-image-custom, .product-detail-content-custom {
+        flex: 1 1 100%;
+      }
+    }
+    .quantity-input {
+      width: 60px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body class="bg-gray-200 text-gray-800 font-sans">
+<nav class="bg-white shadow-lg sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-6">
+    <div class="flex justify-between items-center py-4">
+      <!-- Logo -->
+      <div class="flex-shrink-0">
+        <a href="#" class="text-2xl md:text-3xl font-bold text-yellow-700 hover:text-yellow-800 transition" onclick="showHomePage()">Lustre covering</a>
+      </div>
+
+      <!-- Desktop Menu -->
+      <div class="hidden md:flex md:items-center md:space-x-8">
+        <a href="#" class="nav-link text-gray-700 hover:text-yellow-600 font-medium transition" onclick="showHomePage()">Home</a>
+        <a href="#" class="nav-link text-gray-700 hover:text-yellow-600 font-medium transition" onclick="showProductsPage()">Products</a>
+        <a href="#" class="nav-link text-gray-700 hover:text-yellow-600 font-medium transition" onclick="showAboutPage()">About</a>
+        <a href="#" class="nav-link text-gray-700 hover:text-yellow-600 font-medium transition" onclick="showContactPage()">Contact</a>
+      </div>
+
+      <!-- Right Side Desktop -->
+      <div class="hidden md:flex items-center space-x-4">
+        <a href="#" onclick="showCartPage()" class="text-gray-700 hover:text-yellow-600 font-medium transition">
+          <i class="fas fa-shopping-cart text-xl"></i>
+        </a>
+        <div id="loginContainer">
+          <button onclick="redirectToLoginPage()" class="bg-yellow-600 text-white px-5 py-2 rounded-full hover:bg-yellow-700 transition transform hover:scale-105">Login</button>
+        </div>
+        <div id="userProfile" class="relative hidden">
+          <button id="profileButton" onclick="toggleDropdown()" class="w-12 h-12 rounded-full bg-yellow-600 text-white flex items-center justify-center hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+            <span id="userInitial" class="font-bold text-lg"></span>
+          </button>
+          <ul id="profileDropdown" class="hidden absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-lg shadow-xl z-50 text-sm overflow-hidden">
+            <li class="px-4 py-3 border-b">
+              <p class="font-semibold text-gray-800" id="profileName"></p>
+              <p class="text-xs text-gray-500" id="profileEmail"></p>
+            </li>
+            <li><a href="#" class="flex items-center px-4 py-3 hover:bg-yellow-100 text-gray-700" onclick="showUserProfile()"><i class="fas fa-user mr-3"></i>My Profile</a></li>
+            <li><a href="#" onclick="showCartPage()" class="flex items-center px-4 py-3 hover:bg-yellow-100 text-gray-700"><i class="fas fa-shopping-cart mr-3"></i>My Cart</a></li>
+             <li><a href="#" class="flex items-center px-4 py-3 hover:bg-yellow-100 text-gray-700" onclick="showMyOrdersPage()"><i class="fas fa-box mr-3"></i>My Orders</a></li>
+            <li><hr class="my-1 border-t border-gray-200"></li>
+            <li><a href="#" onclick="handleLogout()" class="flex items-center px-4 py-3 text-red-600 hover:bg-red-100"><i class="fas fa-sign-out-alt mr-3"></i>Logout</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Mobile Toggle -->
+      <div class="md:hidden flex items-center">
+        <a href="#" onclick="showCartPage()" class="text-gray-700 hover:text-yellow-600 mr-4">
+          <i class="fas fa-shopping-cart text-2xl"></i>
+        </a>
+        <button id="mobile-menu-button" onclick="toggleMenu()" class="text-gray-700 hover:text-yellow-600 focus:outline-none">
+          <i id="menuIcon" class="fas fa-bars text-2xl"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" class="hidden md:hidden absolute top-full left-0 w-full bg-white shadow-lg z-40">
+    <a href="#" class="block py-3 px-6 text-gray-700 hover:bg-yellow-50" onclick="navigateAndCloseMenu(showHomePage)">Home</a>
+    <a href="#" class="block py-3 px-6 text-gray-700 hover:bg-yellow-50" onclick="navigateAndCloseMenu(showProductsPage)">Products</a>
+    <a href="#" class="block py-3 px-6 text-gray-700 hover:bg-yellow-50" onclick="navigateAndCloseMenu(showAboutPage)">About</a>
+    <a href="#" class="block py-3 px-6 text-gray-700 hover:bg-yellow-50" onclick="navigateAndCloseMenu(showContactPage)">Contact</a>
+    <div class="p-4" id="mobileAuthSection"></div>
+  </div>
+</nav>
+
+
+<!-- <header id="hero-section" class="relative w-full h-96 sm:h-[20rem] md:h-[40rem] lg:h-[40rem] xl:h-[40rem] overflow-hidden fade-in ">
+  < bg-fixed 
+  <section class=" bg-center bg-cover py-16 px-6 md:px-12 bg-black backdrop-blur-sm bg-opacity-15 " 
+         style="background-image: url(./golden-jewelry1.jpeg);">
+  <div class="bg-white/80 rounded-3xl shadow-lg p-10 md:p-16 max-w-5xl mx-auto text-center">
+    <div class="absolute inset-0 bg-black backdrop-blur-sm bg-opacity-25 flex flex-col items-center justify-center text-center px-4 z-10"> -
+    <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-4  leading-tight drop-shadow-lg">
+      Welcome to Auruline
+    </h2>
+    <p class="text-base sm:text-lg md:text-xl text-white mb-6 max-w-2xl mx-auto drop-shadow" id="welcomeMessage">
+      Discover Timeless Gold Jewelry.
+    </p>
+    <a href="#" onclick="showProductsPage()" class="bg-yellow-600 text-white px-6 md:px-5 py-3 md:py-3 rounded-full text-lg font-semibold hover:bg-yellow-700 transition transform hover:scale-105 shadow-lg">
+      Explore Collection
+    </a>
+   
+  
+  </div>
+</section>
+</header> -->
+
+<header id="hero-section" class="relative w-full h-96 sm:h-[20rem] md:h-[40rem] lg:h-[40rem] xl:h-[40rem] overflow-hidden fade-in ">
+  <img src="./golden-jewelry1.jpeg" alt="Auruline Banner" class="absolute inset-0 w-full h-full object-cover z-0" />
+
+  <div class="absolute inset-0 bg-black backdrop-blur-sm bg-opacity-25 flex flex-col items-center justify-center text-center px-4 z-10">
+    <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-4 leading-tight drop-shadow-lg">
+      Welcome to Lustre covering
+    </h2>
+    <p class="text-base sm:text-lg md:text-xl text-white mb-6 max-w-2xl mx-auto drop-shadow" id="welcomeMessage">
+      Discover Timeless Gold Jewelry.
+    </p>
+    <a href="#" onclick="showProductsPage()" class="bg-yellow-600 text-white px-6 md:px-5 py-3 md:py-3 rounded-full text-lg font-semibold hover:bg-yellow-700 transition transform hover:scale-105 shadow-lg">
+      Explore Collection
+    </a>
+  </div>
+</header>
+<section id="categories-section" class="py-14 md:py-20 bg-gray-100 " >
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h3 class="text-4xl font-extrabold text-center text-yellow-700 mb-14 tracking-wide font-serif animate-fade-in" data-animate>Shop by Category</h3>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+      
+      <div class="bg-white rounded-3xl shadow-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl animate-fade-up" data-animate>
+        <div class="h-48 overflow-hidden">
+          <img src="https://i.ebayimg.com/images/g/GcAAAOSwg6BjaLKn/s-l1200.jpg" alt="Elegant Gold Necklaces" class="w-full h-full object-cover product-card-image  pt-4">
+        </div>
+        <div class="p-6 text-center">
+          <h4 class="text-2xl font-bold text-gray-800 mb-1">Necklaces</h4>
+          <p class="text-gray-600 text-sm mb-4">Elegant designs for every occasion.</p>
+          <a href="#" onclick="showProductsPage()" class="inline-block px-6 py-2 bg-gray-800 text-white rounded-full font-semibold hover:bg-yellow-700 transition transform">
+            View Collection
+          </a>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-3xl shadow-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl animate-fade-up delay-100" data-animate>
+        <div class="h-48 overflow-hidden">
+          <img src="https://i.pinimg.com/736x/56/37/66/56376681bea0c4135a00f87520e9d02e.jpg" alt="Stunning Gold Rings" class="w-full h-full object-cover product-card-image  pt-4">
+        </div>
+        <div class="p-6 text-center">
+          <h4 class="text-2xl font-bold text-gray-800 mb-1">Rings</h4>
+          <p class="text-gray-600 text-sm mb-4">Symbol of love and commitment.</p>
+          <a href="#" onclick="showProductsPage()" class="inline-block px-6 py-2 bg-gray-800 text-white rounded-full font-semibold hover:bg-yellow-700 transition transform">
+            View Collection
+          </a>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-3xl shadow-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl animate-fade-up delay-200" data-animate>
+        <div class="h-48 overflow-hidden">
+          <img src="https://shining-jewel.com/cdn/shop/products/SJ_1945_2.jpg" alt="Unique Gold Earrings" class="w-full h-full object-cover product-card-image  pt-4">
+        </div>
+        <div class="p-6 text-center">
+          <h4 class="text-2xl font-bold text-gray-800 mb-1">Earrings</h4>
+          <p class="text-gray-600 text-sm mb-4">Sparkle with our unique collections.</p>
+          <a href="#" onclick="showProductsPage()" class="inline-block px-6 py-2 bg-gray-800 text-white rounded-full font-semibold hover:bg-yellow-700 transition transform">
+            View Collection
+          </a>
+        </div>
+      </div>
+
+      <div class=" bg-white rounded-3xl shadow-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl animate-fade-up delay-200" data-animate>
+        <div class="h-48 overflow-hidden">
+          <img src="https://m.media-amazon.com/images/I/81MlE3mLEpL._UY1000_.jpg" alt="Graceful Gold Bangles" class="w-full h-full product-card-image  pt-4">
+        </div>
+        <div class="p-4 text-center">
+          <h4 class="text-2xl font-bold text-gray-800 mb-1">Bangles</h4>
+          <p class="text-gray-600 text-sm mb-4">Adorn your wrists with grace.</p>
+          <a href="#" onclick="showProductsPage()" class="inline-block px-6 py-2 bg-gray-800 text-white rounded-full font-semibold hover:bg-yellow-700 transition transform">
+            View Collection
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="featured-products-section" class="  py-1 md:py-1 bg-gradient-to-br from-yellow-50 to-yellow-100">
+    <!-- Custom Jewelry Request Section -->
+<!-- <section class="bg-fixed bg-center bg-cover py-16 px-6 md:px-12" 
+         style="background-image: url(./golden-jewelry1.jpeg);">
+  <div class="bg-white rounded-3xl shadow-lg p-10 md:p-16 max-w-5xl mx-auto text-center">
+    <h2 class="text-3xl md:text-4xl font-bold text-yellow-800 font-serif mb-4">
+      Want Your Own Custom Jewelry?
+    </h2>
+    <p class="text-gray-700 max-w-2xl mx-auto mb-6">
+      Share your dream design with us and we’ll turn it into a beautiful masterpiece just for you!
+      Whether it's for a wedding, anniversary, or a personal style statement, our artisans can bring your vision to life.
+    </p>
+
+   
+    <ul class="text-gray-600 text-base mb-8 space-y-2">
+      <li>✔ 100% Handcrafted with premium materials</li>
+      <li>✔ Delivered safely to your doorstep</li>
+      <li>✔ Unique designs made only for you</li>
+    </ul>
+
+    <a href="#"  onclick=" showCustomDesigntPage()"
+       class="inline-block bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105">
+      Request Your Design
+    </a>
+
+    <div class="mt-10 flex justify-center gap-6 text-yellow-700 text-4xl">
+      <span class="hover:scale-125 transition-transform">💍</span>
+      <span class="hover:scale-125 transition-transform">📐</span>
+      <span class="hover:scale-125 transition-transform">✨</span>
+    </div>
+  </div>
+</section> -->
+
+<section class="relative bg-cover bg-center py-20 px-6 overflow-hidden" 
+    style="background-image: url('./golden-jewelry1.jpeg');">
+    
+    <!-- Light Golden Overlay -->
+    <div class="absolute inset-0 bg-gradient-to-br from-yellow-700/50 via-yellow-500/40 to-yellow-700/50"></div>
+
+    <!-- Solid White Content Box -->
+    <div class="relative max-w-5xl mx-auto bg-white rounded-2xl shadow-2xl p-10 text-center z-10 border border-gray-200">
+        
+        <!-- Badge -->
+        <span class="inline-block bg-yellow-100 text-yellow-700 font-semibold tracking-widest uppercase px-4 py-1 rounded-full text-sm mb-4">
+            Exclusive Custom Design
+        </span>
+
+        <!-- Heading -->
+        <h2 class="text-3xl sm:text-4xl font-bold mb-4 text-gray-900">
+            Your Dream Jewelry, Handcrafted to Perfection
+        </h2>
+        <p class="text-base sm:text-lg text-gray-700 max-w-2xl mx-auto mb-14 leading-relaxed">
+            Imagine a piece that’s yours and only yours. Our master artisans transform your ideas into breathtaking reality — a treasure you'll cherish for a lifetime.
+        </p>
+
+        <!-- Steps -->
+        <div class="grid sm:grid-cols-3 gap-8 text-left">
+            <div class="bg-yellow-50 rounded-xl shadow-md p-8 border border-yellow-100 hover:scale-105 hover:border-yellow-400 transition transform duration-300">
+                <div class="w-14 h-14 flex items-center justify-center rounded-full bg-yellow-200 text-yellow-800 text-2xl mb-5">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2 text-gray-900">Step 1 — Share Your Vision</h3>
+                <p class="text-sm text-gray-600 leading-relaxed">
+                    Send us your sketch, picture, or even a simple idea  we’ll capture every detail you imagine.
+                </p>
+            </div>
+
+            <div class="bg-yellow-50 rounded-xl shadow-md p-8 border border-yellow-100 hover:scale-105 hover:border-yellow-400 transition transform duration-300">
+                <div class="w-14 h-14 flex items-center justify-center rounded-full bg-yellow-200 text-yellow-800 text-2xl mb-5">
+                    <i class="fas fa-pencil-ruler"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2 text-gray-900">Step 2 — Crafted Design</h3>
+                <p class="text-sm text-gray-600 leading-relaxed">
+                    We refine your concept, choose premium materials, and get your approval before creation.
+                </p>
+            </div>
+
+            <div class="bg-yellow-50 rounded-xl shadow-md p-8 border border-yellow-100 hover:scale-105 hover:border-yellow-400 transition transform duration-300">
+                <div class="w-14 h-14 flex items-center justify-center rounded-full bg-yellow-200 text-yellow-800 text-2xl mb-5">
+                    <i class="fas fa-gem"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2 text-gray-900">Step 3 — Delivered with Love</h3>
+                <p class="text-sm text-gray-600 leading-relaxed">
+                    Your jewelry is hand-finished, polished, and delivered securely ready to shine forever.
+                </p>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="mt-12">
+            <a href="#"  onclick=" showCustomDesigntPage()"
+                class="relative inline-block bg-yellow-500 text-white font-medium py-3 px-8 rounded-full shadow-md text-lg overflow-hidden group hover:bg-yellow-600 transition">
+                <span class="relative z-10">Start Your Design</span>
+                <span class="shine absolute inset-0"></span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Shine Button Effect -->
+<style>
+.shine {
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.6), transparent);
+    transform: translateX(-100%);
+    animation: shineAnim 3s infinite;
+}
+@keyframes shineAnim {
+    0% { transform: translateX(-100%); }
+    50% { transform: translateX(100%); }
+    100% { transform: translateX(100%); }
+}
+</style>
+
+</section>
+<!-- bg-gradient-to-br from-gray-50 to-gray-100 -->
+<div id="allProductsContainer" class="hidden py-10 md:py-16 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <div id="category" class="   p-6 md:p-8 rounded-xl shadow-lg mb-8">
+      <div class="grid grid-cols-1 gap-4">
+        <div class="w-full mb-4">
+          <input type="text" id="productSearch" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500" placeholder="Search products..." aria-label="Search products">
+        </div>
+        <div class="text-center md:flex md:flex-wrap md:justify-center items-center gap-2" id="categoryButtons">
+          <h6 class="text-base font-semibold text-gray-600 mr-2 mb-2 md:mb-0">Filter by Category:</h6>
+          <button class="px-4 py-2 bg-yellow-600 text-white rounded-full font-medium hover:bg-yellow-700 transition active" data-category="All"><i class="fas fa-th-large mr-2"></i>All</button>
+          </div>
+      </div>
+    </div>
+
+    <div id="productListSection" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+        <div class="col-span-full text-center py-10" id="loadingMessage">
+            <div class="text-yellow-600 text-4xl animate-spin mb-4"><i class="fas fa-spinner"></i></div>
+            <p class="text-gray-600 text-lg">Loading products...</p>
+        </div>
+        </div>
+
+    <div id="productDetailView" class="hidden bg-white p-6 md:p-10 rounded-xl shadow-lg mt-8">
+      <div class="col-span-full text-center py-10" id="productDetailLoadingMessage">
+        <div class="text-yellow-600 text-4xl animate-spin mb-4"><i class="fas fa-spinner"></i></div>
+        <p class="text-gray-600 text-lg">Loading product details...</p>
+      </div>
+      <div id="productDetailContent" class="hidden">
+        <div class="product-detail-card-custom flex flex-col md:flex-row bg-white rounded-xl shadow-md p-6 gap-6">
+            <div class="product-detail-image-custom flex-1 flex items-center justify-center">
+                <img id="detail-imageUrl" src="" alt="Product Image" class="max-w-full max-h-96 object-contain rounded-lg">
+            </div>
+            <div class="product-detail-content-custom flex-1">
+                <h1 id="detail-name" class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Product Name</h1>
+                <span id="detail-category" class="bg-yellow-400 text-gray-800 px-3 py-1 rounded-full text-sm font-semibold inline-block mb-4"><i class="fas fa-tag mr-1"></i> Category</span>
+                <p id="detail-description" class="text-gray-700 text-base leading-relaxed mb-4">Product description goes here.</p>
+                <p id="detail-price" class="text-yellow-700 text-3xl font-bold mb-6">Rs.0.00</p>
+
+                <div class="flex items-center space-x-4 mb-8">
+                    <label for="quantityInput" class="font-semibold text-gray-700">Quantity:</label>
+                    <div class="flex border border-gray-300 rounded-lg overflow-hidden">
+                        <button onclick="changeQty(-1)" class="bg-gray-200 text-gray-700 px-4 py-2 hover:bg-gray-300 focus:outline-none">-</button>
+                        <input id="quantityInput" type="number" min="1" value="1" class="quantity-input border-t-0 border-b-0 text-center text-gray-800 focus:ring-0 focus:outline-none" readonly>
+                        <button onclick="changeQty(1)" class="bg-gray-200 text-gray-700 px-4 py-2 hover:bg-gray-300 focus:outline-none">+</button>
+                    </div>
+                    <p id="stock" class="font-semibold text-gray-700" >Stock :0 </p>
+                </div>
+
+                <button id="addToCartBtn" class="bg-yellow-600 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-yellow-700 transition transform hover:scale-105 w-full">
+                    <i class="fas fa-cart-plus mr-2"></i> Add to Cart
+                </button>
+            </div>
+        </div>
+      </div>
+      <div class="text-center mt-8">
+        <button onclick="hideProductDetail()" class="bg-gray-800 text-white px-6 py-3 rounded-full hover:bg-gray-900 transition transform hover:scale-105">
+          <i class="fas fa-arrow-left mr-2"></i> Back to Products
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="cartView" class="hidden py-10 md:py-16 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+  <div class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 bg-white shadow-lg rounded-lg">
+    <h1 class="text-4xl font-bold text-yellow-700 text-center mb-8">My Cart</h1>
+    <div id="cartItemsContainer">
+      </div>
+    <div id="cartTotalContainer" class="mt-8 pt-4 border-t border-gray-300 hidden">
+      <div class="flex justify-between items-center font-bold text-2xl">
+        <span>Total:</span>
+        <span id="cartTotalPrice">₹0.00</span>
+      </div>
+     <a href="#" onclick="showCheckOutPage()"> <button id="checkoutButton" class="mt-6 w-full bg-yellow-600 text-white py-3 rounded-full font-semibold hover:bg-yellow-700 transition">Proceed to Checkout</button></a>
+    </div>
+    <div id="emptyCartMessage" class="text-center py-20 text-gray-500 hidden">
+      <i class="fas fa-shopping-cart text-6xl mb-4"></i>
+      <p class="text-xl">Your cart is empty.</p>
+      <a href="#" onclick="showProductsPage()" class="mt-4 inline-block text-yellow-600 hover:underline">Start shopping</a>
+    </div>
+  </div>
+</section>
+<section id="checkout-section" class="hidden py-10 md:py-16 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h1 class="text-4xl font-bold text-yellow-700 text-center mb-8">Checkout</h1>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      
+      <div class="bg-white p-8 rounded-2xl shadow-lg">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-4">Shipping Details</h2>
+        <form id="checkoutForm" class="space-y-5">
+          <div>
+            <label for="checkoutCustomerName" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <input type="text" id="checkoutCustomerName" name="customerName" required placeholder="Enter your full name" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
+          </div>
+          <div>
+            <label for="checkoutAddress" class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+            <input type="text" id="checkoutAddress" name="address" required placeholder="House No, Street, Landmark" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
+          </div>
+          <div>
+            <label for="checkoutCity" class="block text-sm font-medium text-gray-700 mb-1">City</label>
+            <input type="text" id="checkoutCity" name="city" required placeholder="Your city" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="checkoutPincode" class="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
+              <input type="text" id="checkoutPincode" name="pincode" required placeholder="e.g., 600001" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
+            </div>
+            <div>
+              <label for="checkoutMobile" class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+              <input type="tel" id="checkoutMobile" name="mobileNumber" required placeholder="10-digit number" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
+            </div>
+          </div>
+          <div class="pt-4">
+        <button type="submit" id="reviewOrderBtn" class="w-full bg-yellow-600 text-white py-3 rounded-full font-semibold hover:bg-yellow-700 transition text-lg">
+            Review Your Order
+        </button>
+        <p id="checkout-error-message" class="text-red-600 text-center mt-3"></p>
+    </div>
+        </form>
+      </div>
+
+      <div class="bg-white p-8 rounded-2xl shadow-lg">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-4">Order Summary</h2>
+        <div id="checkoutOrderSummary" class="space-y-3 mb-6">
+          <div class="text-center py-10 text-gray-500">
+            <i class="fas fa-spinner fa-spin text-2xl"></i>
+            <p>Loading summary...</p>
+          </div>
+        </div>
+        <div class="border-t pt-4 space-y-2">
+          <div class="flex justify-between text-lg">
+            <span>Subtotal</span>
+            <span id="checkoutSubtotal">₹0.00</span>
+          </div>
+          <div class="flex justify-between text-lg">
+            <span>Shipping</span>
+            <span class="text-green-600">FREE</span>
+          </div>
+          <div class="flex justify-between font-bold text-2xl pt-2">
+            <span>Total</span>
+            <span id="checkoutTotalPrice">₹0.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="confirmation-section" class="hidden py-10 md:py-16 bg-gray-50 min-h-screen">
+  <div class="max-w-3xl mx-auto p-4 sm:p-6 lg:p-8 bg-white shadow-lg rounded-lg">
+    <h1 class="text-4xl font-bold text-yellow-700 text-center mb-8">Confirm Your Order</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div class="bg-gray-100 p-6 rounded-lg">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Shipping To:</h2>
+        <div id="confirm-shipping-details" class="space-y-2 text-gray-700">
+          <p id="confirm-name" class="font-bold"></p>
+          <p id="confirm-address"></p>
+          <p id="confirm-city-pincode"></p>
+          <p id="confirm-mobile"></p>
+        </div>
+      </div>
+      
+      <div class="bg-gray-100 p-6 rounded-lg">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Order Summary:</h2>
+        <div class="space-y-2">
+          <div class="flex justify-between">
+            <span>Subtotal</span>
+            <span id="confirm-subtotal">₹0.00</span>
+          </div>
+          <div class="flex justify-between font-bold text-xl pt-2">
+            <span>Total</span>
+            <span id="confirm-total">₹0.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 text-center">
+      <button id="proceedToPaymentBtn" class="w-full md:w-auto bg-green-600 text-white py-3 px-10 rounded-full font-semibold hover:bg-green-700 transition text-lg">
+        Proceed to Payment
+      </button>
+      <button onclick="showCheckOutPage()" class="mt-4 text-sm text-gray-600 hover:underline">Go Back & Edit</button>
+    </div>
+  </div>
+</section>
+<section id="about-section" class="hidden py-5 min-h-screen bg-gradient-to-br from-yellow-50 to-yellow-100">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-gray-800 backdrop-blur-md shadow-xl mb-10 rounded-2xl p-8 md:p-10 transition-all transform hover:shadow-yellow-200 animate-fade-up" data-animate>
+      
+      <!-- Heading -->
+      <h2 class="text-4xl font-serif font-bold text-yellow-500 text-center mb-10 mt-5">
+        About <span class="text-yellow-400">Lustre covering</span>
+      </h2>
+
+      <!-- Paragraphs -->
+      <p class="text-white text-base font-semibold leading-relaxed text-justify mb-4">
+        <span class="text-yellow-400 font-bold">Lustre covering</span> is not just a jewellery store – it’s a place where tradition meets style. 
+        Located in the heart of <span class="text-yellow-400 font-bold">Sivakasi</span>, we bring you 
+        <span class="text-yellow-400 font-bold">premium quality covering jewellery</span> that looks just like real gold, but at a price that everyone can afford.
+      </p>
+
+      <p class="text-white text-base font-semibold leading-relaxed text-justify mb-4">
+        From <span class="text-yellow-400 font-bold">Chains, Kammal, Valayal, Harams, Necklaces, Jimmiki Kammal</span> and more, our collections 
+        blend the charm of <span class="text-yellow-400 font-bold">traditional South Indian designs</span> with a touch of modern elegance. 
+        Whether it’s for a wedding, festival, or daily wear – we’ve got something perfect for you.
+      </p>
+
+      <p class="text-white text-base font-semibold leading-relaxed text-justify mb-4">
+        Every piece is crafted with <span class="text-yellow-400 font-bold">care and love</span>, polished to perfection, and comes with a 
+        <span class="text-yellow-400 font-bold">6-month guarantee</span>. We believe jewellery is not just an accessory – it’s an emotion.
+      </p>
+
+      <!-- Features List -->
+      <ul class="space-y-3 text-white text-base font-semibold leading-relaxed mb-4">
+        <li><i class="fas fa-cogs text-yellow-500 mr-2"></i> <a href="#" onclick=" showCustomDesigntPage()" class="underline text-yellow-400">Custom designs</a> made just for you</li>
+        <li><i class="fas fa-shipping-fast text-yellow-500 mr-2"></i> Free shipping all over India</li>
+        <li><i class="fas fa-gem text-yellow-500 mr-2"></i> Professional <span class="text-yellow-400 font-bold">polishing service</span> available for your jewellery</li>
+        <li><i class="fas fa-undo text-yellow-500 mr-2"></i> Hassle-free returns & exchanges</li>
+        <li><i class="fas fa-users text-yellow-500 mr-2"></i> Trusted by thousands of happy customers</li>
+      </ul>
+
+      <!-- Final Paragraph -->
+      <p class="text-white text-base font-semibold leading-relaxed text-justify">
+        At <span class="text-yellow-400 font-bold">Lustre covering</span>, our mission is to make everyone feel special without spending a fortune on real gold. 
+        Visit us today – let’s make your jewellery dreams come true.
+      </p>
+
+      <!-- CTA Buttons -->
+      <div class="mt-8 flex justify-center gap-4">
+        <a href="#"  onclick="showProductsPage()" class="px-7 py-3 bg-yellow-600 text-white font-bold rounded-full hover:bg-yellow-700 hover:scale-105 transition-all shadow-md">
+          Shop Now
+        </a>
+        <a href="#" onclick="showContactPage() " class="px-7 py-3 bg-transparent border-2 border-yellow-500 text-yellow-500 font-bold rounded-full hover:bg-yellow-500 hover:text-white hover:scale-105 transition-all shadow-md">
+          Contact Us
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+  <!-- <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h3 class="text-4xl font-bold text-center text-yellow-700 mb-12">What Our Customers Say</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="bg-white p-8 rounded-lg shadow-md slide-in-up delay-1">
+        <p class="text-gray-600 mb-4">"The quality and design are absolutely stunning. I received so many compliments on my new necklace. Highly recommended!"</p>
+        <div class="flex items-center">
+          <img src="" alt="Customer" class="w-12 h-12 rounded-full mr-4">
+          <div>
+            <p class="font-semibold text-gray-800">Priya Sharma</p>
+            <p class="text-sm text-gray-500">Chennai</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white p-8 rounded-lg shadow-md slide-in-up delay-2">
+        <p class="text-gray-600 mb-4">"Excellent customer service and beautiful craftsmanship. The ring was even more beautiful in person. Will definitely shop again."</p>
+        <div class="flex items-center">
+          <img src="" alt="Customer" class="w-12 h-12 rounded-full mr-4">
+          <div>
+            <p class="font-semibold text-gray-800"></p>
+            <p class="text-sm text-gray-500">Sivakasi</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white p-8 rounded-lg shadow-md slide-in-up delay-3">
+        <p class="text-gray-600 mb-4">"A trustworthy brand with authentic gold. My family has been purchasing from Auruline for years. They never disappoint."</p>
+        <div class="flex items-center">
+          <img src="https://i.pravatar.cc/150?u=a042581f4e29026704f" alt="Customer" class="w-12 h-12 rounded-full mr-4">
+          <div>
+            <p class="font-semibold text-gray-800">Kavita Rao</p>
+            <p class="text-sm text-gray-500">Bengaluru</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> -->
+
+<section id="contact-section" class="min-h-screen py-16 px-4 text-white relative overflow-hidden  bg-gradient-to-br from-yellow-50 to-yellow-100 ">
+   <!-- style="background-image: url(./images.jpg); background-size: cover; background-position: center;" -->
+<!-- 
+    <div class="absolute inset-0 bg-black bg-opacity-60"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div> -->
+
+    <div class="max-w-7xl mx-auto relative z-10 grid md:grid-cols-2 gap-10 items-start">
+
+        <div class="bg-gray-800  p-8 md:p-10 rounded-3xl border border-gray-800 shadow-2xl space-y-6 animate-fade-in-up">
+            <h2 class="text-4xl font-extrabold text-yellow-400 text-center mb-2 font-serif">Send Us a Message</h2>
+            <p class="text-gray-300 text-center text-sm mb-4">We’d love to hear from you — questions, custom orders or design ideas.</p>
+
+            <form id="contactForm" class="space-y-4" novalidate>
+                <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off">
+
+                <div class="relative">
+                    <input type="text" id="name" name="name" required placeholder=" Your Name"
+                           class="peer w-full bg-transparent text-white px-4 py-3 rounded-xl border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition duration-200" />
+                    <label for="name"
+                           class="absolute left-4 top-3 text-gray-400 text-sm transition-all duration-200 peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-focus:top-1 peer-focus:text-xs peer-focus:text-yellow-400"></label>
+                    <i class="fas fa-user absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 peer-focus:text-yellow-400 transition duration-200"></i>
+                </div>
+
+                <div class="relative">
+                    <input type="email" id="email" name="email" required placeholder="Email Address "
+                           class="peer w-full bg-transparent text-white px-4 py-3 rounded-xl border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition duration-200" />
+                    <label for="email"
+                           class="absolute left-4 top-3 text-gray-400 text-sm transition-all duration-200 peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-focus:top-1 peer-focus:text-xs peer-focus:text-yellow-400"></label>
+                    <i class="fas fa-envelope absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 peer-focus:text-yellow-400 transition duration-200"></i>
+                </div>
+
+                <div class="relative">
+                    <textarea id="message" name="message" rows="5" required placeholder=" Your Message"
+                              class="peer w-full bg-transparent text-white px-4 py-3 rounded-xl border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition duration-200 resize-none"></textarea>
+                    <label for="message"
+                           class="absolute left-4 top-3 text-gray-400 text-sm transition-all duration-200 peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-focus:top-1 peer-focus:text-xs peer-focus:text-yellow-400"></label>
+                    <i class="fas fa-comment-dots absolute right-4 top-5 text-gray-400 peer-focus:text-yellow-400 transition duration-200"></i>
+                </div>
+
+                <div id="formMessage" class="hidden text-center text-sm p-3 rounded-lg"></div>
+
+                <button type="submit" id="submitBtn"
+                        class="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 rounded-xl transition transform hover:scale-105 shadow-md shadow-yellow-400/30 flex items-center justify-center gap-3">
+                    <span id="btnIcon"><i class="fas fa-paper-plane"></i></span>
+                    <span id="btnText">Send Message</span>
+                </button>
+
+                <p class="text-xs text-gray-400 text-center mt-2">We reply within 24 hours. For urgent requests call
+                    <a href="tel:+91" class="text-yellow-300 underline hover:no-underline transition">
+                        +91 6383477029
+                    </a>
+                </p>
+            </form>
+
+            <div class="mt-2 text-xs text-gray-400 flex items-center justify-between">
+                <span class="flex items-center gap-1"><i class="fas fa-lock"></i> Secure & encrypted</span>
+                <span class="flex items-center gap-1"><i class="fas fa-check-circle text-green-400"></i> Trusted jeweller since 2010</span>
+            </div>
+        </div>
+
+        <div class="space-y-6 animate-fade-in-up delay-200">
+          <!-- bg-opacity-70 backdrop-blur-lg -->
+            <div class="bg-gray-800  p-6 rounded-3xl border border-gray-700 shadow-2xl">
+                <h3 class="text-3xl font-bold text-yellow-400 font-serif text-center">Visit Us</h3>
+
+                <div class="aspect-video overflow-hidden rounded-xl shadow-md mt-4">
+                    <iframe
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3928.3241517409255!2d77.80210217503792!3d9.995079172288005!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b069d300b957643%3A0x6731e0a2958348a4!2sSivakasi%2C%20Tamil%20Nadu!5e0!3m2!1sen!2sin!4v1694200000000!5m2!1sen!2sin"
+                        class="w-full h-full border-0" allowfullscreen loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-yellow-100 text-base font-medium">
+                    <p class="flex items-center gap-2"><i class="fas fa-map-marker-alt text-yellow-400"></i>123 Gold Street, Sivakasi</p>
+                    <p class="flex items-center gap-2"><i class="fas fa-phone-alt text-yellow-400"></i><a href="tel:+916383477029"
+                                class="hover:underline">+91 6383477029</a></p>
+                    <p class="flex items-center gap-2"><i class="fas fa-envelope text-yellow-400"></i><a href="mailto:support@aurlineaurum.in"
+                                class="hover:underline">support@aurlineaurum.in</a></p>
+                    <p class="flex items-center gap-2"><i class="fas fa-clock text-yellow-400"></i>Mon - Sat: 10 AM - 8 PM</p>
+                </div>
+
+                <div class="flex justify-center space-x-6 mt-6">
+                    <a href="#" class="text-yellow-400 hover:text-white transition duration-300 hover:scale-110"><i
+                                class="fab fa-facebook-f fa-lg"></i></a>
+                    <a href="#" class="text-yellow-400 hover:text-white transition duration-300 hover:scale-110"><i
+                                class="fab fa-instagram fa-lg"></i></a>
+                    <a href="#" class="text-yellow-400 hover:text-white transition duration-300 hover:scale-110"><i
+                                class="fab fa-whatsapp fa-lg"></i></a>
+                </div>
+            </div>
+
+            <div class="bg-gray-800  p-4 rounded-2xl border border-gray-700 shadow-inner text-gray-200">
+                <div class="flex items-center gap-4">
+                    <img src="https://cdn-icons-png.flaticon.com/512/9131/9131529.png" alt="owner"
+                         class="w-16 h-16 rounded-full object-cover border-2 border-yellow-400 shadow-md">
+                    <div>
+                        <p class="text-lg text-yellow-300 font-semibold">G.Mageswari</p>
+                        <p class="text-sm text-gray-300">Custom designs & lifetime polishing</p>
+                    </div>
+                </div>
+                <div class="mt-4 grid grid-cols-3 gap-2 text-xs text-gray-400 font-semibold">
+                    <div class="text-center bg-gray-700 p-2 rounded-lg"><i class="fas fa-certificate text-yellow-400 mr-1"></i> Verified Seller</div>
+                    <div class="text-center bg-gray-700 p-2 rounded-lg"><i class="fas fa-calendar-alt text-yellow-400 mr-1"></i> 30+ Years</div>
+                    <div class="text-center bg-gray-700 p-2 rounded-lg"><i class="fas fa-shipping-fast text-yellow-400 mr-1"></i> Fast Turnaround</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<section id="userProfileSection" class="hidden py-14 px-4 bg-gradient-to-br from-yellow-50 to-yellow-100 min-h-screen">
+  <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden animate-fade-in">
+    <div class="grid grid-cols-1 md:grid-cols-3">
+
+      <!-- Left: Profile Badge -->
+      <div class="bg-yellow-600 text-white flex flex-col items-center justify-center py-10 px-6 text-center">
+        <div class="relative w-28 h-28 rounded-full overflow-hidden bg-white text-yellow-700 flex items-center justify-center text-4xl font-bold shadow-md border-4 border-yellow-300">
+          <img id="profileImage" src="" alt="User" class="absolute w-full h-full object-cover rounded-full hidden" />
+          <span id="profileInitial">A</span>
+        </div>
+
+        <h2 class="text-2xl font-semibold mt-5 capitalize tracking-wide"  id="profileName"></h2>
+        
+        <p id="profileEmail" class="text-sm text-yellow-100 mt-1"></p>
+      </div>
+
+      <!-- Right: Profile Info -->
+      <div class="col-span-2 p-8 md:p-10 bg-white">
+        <h3 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Profile Details</h3>
+
+        <div id="profileDetails" class="space-y-5">
+          <div>
+            <label class="text-gray-500 text-sm block mb-1">Full Name</label>
+            <p class="text-lg font-medium text-gray-800" data-field="fullName" id="detailFullName">...</p>
+          </div>
+
+          <div>
+            <label class="text-gray-500 text-sm block mb-1">Email</label>
+            <p class="text-lg font-medium text-gray-800" data-field="email" id="detailEmail">...</p>
+          </div>
+
+          <div>
+            <label class="text-gray-500 text-sm block mb-1">Phone</label>
+            <p class="text-lg font-medium text-gray-800" data-field="phone" id="detailPhone">...</p>
+          </div>
+
+          <div>
+            <label class="text-gray-500 text-sm block mb-1">Address</label>
+            <p class="text-lg font-medium text-gray-800" data-field="address" id="detailAddress">...</p>
+          </div>
+        </div>
+
+        <div class="mt-8 text-right space-x-3">
+          <button id="editBtn" class="bg-yellow-600 text-white px-6 py-2 rounded-full hover:bg-yellow-700 transition shadow-md text-sm font-semibold">
+            <i class="fas fa-edit mr-2"></i>Edit Profile
+          </button>
+          <button id="saveBtn" class="hidden bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 transition shadow-md text-sm font-semibold">
+            <i class="fas fa-save mr-2"></i>Save
+          </button>
+          <button id="cancelBtn" class="hidden bg-gray-500 text-white px-6 py-2 rounded-full hover:bg-gray-600 transition shadow-md text-sm font-semibold">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeIn 0.8s ease-out both;
+}
+</style>
+<section id="my-orders-section" class="hidden py-14 px-4 bg-gradient-to-br from-yellow-50 to-yellow-100 min-h-screen">
+  <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl p-8 md:p-10 animate-fade-in">
+    <h1 class="text-4xl font-bold text-yellow-700 text-center mb-8 border-b pb-4">My Order History</h1>
+    
+    <div id="orders-list-container" class="space-y-6">
+      <div id="orders-loading-message" class="text-center py-20 text-gray-500">
+        <svg class="animate-spin h-8 w-8 mx-auto text-yellow-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="text-lg mt-4">Loading your orders...</p>
+      </div>
+    </div>
+    
+    <div id="no-orders-message" class="text-center py-20 text-gray-500 hidden">
+      <i class="fas fa-box-open text-6xl mb-4"></i>
+      <p class="text-xl">You have not placed any orders yet.</p>
+      <a href="#" onclick="showProductsPage()" class="mt-4 inline-block text-yellow-600 hover:underline">Start shopping</a>
+    </div>
+  </div>
+</section>
+<section id="custom-design" class="hidden bg-gradient-to-b from-yellow-50 via-yellow-100 to-yellow-50 py-20 px-4 md:px-10">
+  <div class="max-w-6xl mx-auto rounded-3xl shadow-xl bg-white p-10 md:p-16 border border-yellow-300">
+    <div class="text-center mb-12">
+      <h2 class="text-4xl md:text-5xl font-bold text-yellow-800 font-serif">Request a Custom Jewelry Design</h2>
+      <p class="mt-4 text-gray-600 text-lg max-w-2xl mx-auto">
+        Bring your dream design to life. Share your idea and we'll craft it into a unique masterpiece.
+      </p>
+    </div>
+
+    <!-- Form -->
+    <form id="customDesignForm" class="grid grid-cols-1 md:grid-cols-2 gap-8" enctype="multipart/form-data">
+      <div class="space-y-6">
+        <div>
+          <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+          <input type="text" id="name" name="name" required placeholder="e.g., Priya Sharma"
+            class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600" />
+        </div>
+
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+          <input type="email" id="email" name="email" required placeholder="e.g., priya@example.com"
+            class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600" />
+        </div>
+
+        <div>
+          <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+          <input type="tel" id="phone" name="phone" required placeholder="e.g., 9876543210"
+            class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600" />
+        </div>
+
+        <div>
+          <label for="jewelryType" class="block text-sm font-medium text-gray-700 mb-1">Jewelry Type *</label>
+          <select id="jewelryType" name="jewelryType" required
+            class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
+            <option disabled selected value="">Select Type</option>
+            <option value="ring">Ring</option>
+            <option value="necklace">Necklace</option>
+            <option value="earrings">Earrings</option>
+            <option value="bracelet">Bracelet</option>
+            <option value="haram">Haram</option>
+            <option value="others">Others</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        <div>
+          <label for="metalType" class="block text-sm font-medium text-gray-700 mb-1">Metal Type *</label>
+          <select id="metalType" name="metalType" required
+            class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
+            <option disabled selected value="">Select Metal</option>
+            <option value="covering-gold">Covering Jewelry</option>
+            <option value="covering-gold-polish">Covering Jewelry Gold Polished</option>
+            <option value="aympon">Aympon</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Design Description *</label>
+          <textarea id="description" name="description" rows="5" required
+            placeholder="Describe the shape, stones, ideas..."
+            class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"></textarea>
+        </div>
+
+        <div>
+          <label for="image" class="block text-sm font-medium text-gray-700 mb-1">Upload Reference Image (Optional)</label>
+          <input type="file" id="image" name="image" accept="image/*"
+            class="w-full p-3 border border-gray-300 rounded-lg bg-white file:bg-yellow-50 file:text-yellow-700 file:rounded-full file:px-4 file:py-2 hover:file:bg-yellow-100" />
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="budget" class="block text-sm font-medium text-gray-700 mb-1">Budget (₹)</label>
+            <input type="number" id="budget" name="budget" placeholder="e.g., 3000"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600" />
+          </div>
+          <div>
+            <label for="deliveryDate" class="block text-sm font-medium text-gray-700 mb-1">Delivery Date</label>
+            <input type="date" id="deliveryDate" name="deliveryDate"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600" />
+          </div>
+        </div>
+      </div>
+
+      <div class="col-span-1 md:col-span-2 text-center mt-10">
+        <button type="submit" id="submitBtn"
+          class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-10 rounded-full shadow-lg transition-all duration-200">
+          Submit Request
+        </button>
+      </div>
+    </form>
+
+    <!-- Message box OUTSIDE form -->
+    <div id="formMessage" class="hidden text-sm font-semibold p-4 rounded-lg"></div>
+  </div>
+</section>
+
+
+<footer id="contact-section" class="bg-gray-800 text-white py-2">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <p class="text-sm text-gray-200 mt-2 mb-2">&copy; 2025 Lustre covering. All Rights Reserved.</p>
+  </div>
+</footer>
+
+<script src="./index.js"></script>
+<script>
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('opacity-100', 'translate-y-0');
+      }
+    });
+  }, { threshold: 0.2 });
+
+  document.querySelectorAll('[data-animate]').forEach(el => {
+    el.classList.add('opacity-0', 'translate-y-8', 'transition-all', 'duration-700');
+    observer.observe(el);
+  });
+</script>
+
+
+</body>
+</html>

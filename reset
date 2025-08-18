@@ -1,0 +1,22 @@
+Of course. Here are the standard test card details provided by Stripe to simulate a successful payment.
+
+You can use these details on the Stripe payment page. These will only work when your Stripe account is in **Test Mode**, and no real money will be charged.
+
+***
+### ## Stripe Test Payment Details 💳
+
+* **Card Number:**
+    `4242 4242 4242 4242`
+
+* **Expiry Date (EXP):**
+    Use any date in the future. For example: `12 / 25`
+
+* **CVC:**
+    Use any 3 digits. For example: `123`
+
+* **Name on Card:**
+    You can enter any name.
+
+
+
+Just enter these details on the Stripe payment page and click "Pay". This will simulate a successful transaction and should redirect you back to your `success.html` page.

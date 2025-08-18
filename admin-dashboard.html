@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="./admin.css">
+    
+  <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <div class="logo">
+            <a href="#" data-section="dashboard-section">
+                <i class="fas fa-user-shield icon"></i>
+            </a>
+        </div>
+        <button class="sidebar-toggle" aria-label="Toggle navigation">&#9776;</button>
+        <nav class="sidebar-nav">
+            <ul>
+                <li><a href="#" data-section="dashboard-section" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="#" data-section="products-section"><i class="fas fa-box"></i> Manage Products</a></li>
+                <li><a href="#" data-section="orders-section"><i class="fas fa-clipboard-list"></i> Manage Orders</a></li>
+                <li><a href="#" data-section="users-section"><i class="fas fa-users"></i> View Users</a></li>
+                <li><a href="#" data-section="requests-section"><i class="fas fa-file-signature"></i> Custom Requests</a></li>
+
+            </ul>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="#" id="adminLogoutLink"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main-content">
+        <header class="admin-header">
+            <h1 id="main-header-title">Dashboard Overview</h1>
+            <div class="user-info">
+                <i class="fas fa-user-shield"></i> Welcome, Admin!
+            </div>
+        </header>
+
+        <section id="dashboard-section" class="content-section active">
+            <div class="stats-grid" id="statsGrid">
+                <p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Loading statistics...</p>
+            </div>
+        </section>
+
+        <section id="products-section" class="content-section">
+            <div class="data-section">
+                <h2>Add / Edit Product</h2>
+                <form id="productForm" class="product-form">
+                    <input type="hidden" id="productId">
+                    <div class="form-group"><label for="productName">Product Name:</label><input type="text" id="productName" required></div>
+                    <div class="form-group"><label for="productDescription">Description:</label><textarea id="productDescription" rows="4" required></textarea></div>
+                    <div class="form-group"><label for="productPrice">Price:</label><input type="number" id="productPrice" step="0.01" min="0" required></div>
+                    <div class="form-group"><label for="productStock">Stock:</label><input type="number" id="productStock" min="0" required></div>
+                    <div class="form-group"><label for="productCategory">Category:</label>
+                        <select id="productCategory" required>
+                            <option value="">-- Select a Category --</option>
+                            <option value="Chain">Chain</option>
+                            <option value="Bangles">Bangles</option>
+                            <option value="Earrings">Earrings</option>
+                            <option value="Rings">Rings</option>
+                            <option value="Necklaces">Necklaces</option>
+                            <option value="Anklets (Kolusu)"> Anklets (Kolusu)</option>
+                        </select>
+                    </div>
+                    <!-- <div class="form-group"><label for="productImageUrl">Image URL:</label><input type="url" id="productImageUrl" required></div> -->
+                    <div class="form-group">
+                    <label for="productImageUrl">Image URL:</label>
+                   <div style="display: flex; gap: 10px; align-items: center;">
+                         <input type="url" id="productImageUrl" required style="flex:1;">
+                            <button type="button" id="openUploaderBtn" class="btn btn-primary">
+                         <i class="fas fa-cloud-upload-alt"></i> Upload
+                           </button>
+                         </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button type="submit" class="btn btn-success" id="saveProductBtn"><i class="fas fa-save"></i> Add Product</button>
+                        <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="display:none;"><i class="fas fa-times"></i> Cancel Edit</button>
+                    </div>
+                    <div id="formMessage" class="message-container"></div>
+                </form>
+            </div>
+            <div class="data-section">
+                <h2>Products List</h2>
+                <div id="productsTableContainer" class="table-container">
+                    <p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Loading products...</p>
+                </div>
+                <div id="tableMessageProducts" class="message-container"></div>
+            </div>
+        </section>
+
+      <section id="orders-section" class="content-section">
+    <div class="data-section">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4 border-b pb-3">All Customer Orders</h2>
+        
+        <div class="mb-4">
+            <input type="text" id="orderSearchInput" placeholder="Search by Customer Name or User Name..." 
+                   class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        
+        <div id="ordersTableContainer" class="table-container">
+            </div>
+    </div>
+</section>
+
+<div id="orderDetailsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-full overflow-y-auto">
+        <div class="p-6 border-b flex justify-between items-center">
+            <h2 class="text-2xl font-semibold">Order Details</h2>
+            <button onclick="closeModal()" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+        </div>
+        <div id="modal-content" class="p-6">
+            </div>
+    </div>
+</div>
+
+        <section id="users-section" class="content-section">
+            <div class="data-section">
+                <h2>User Details</h2>
+                <div id="usersTableContainer" class="table-container">
+                    <p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Loading users...</p>
+                </div>
+                <div id="tableMessageUsers" class="message-container"></div>
+            </div>
+        </section>
+       <section id="requests-section" class="content-section">
+          <div class="data-section">
+            <h2>Custom Design Requests</h2>
+            <div id="requestsTableContainer" class="table-container">
+               <p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Loading requests...</p>
+            </div>
+            <div id="tableMessageRequests" class="message-container"></div>
+         </div>
+       </section>
+
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+        </div>
+        <!-- Cloudinary Uploader Modal -->
+<div id="uploaderModal" class="modal-overlay" style="display:none;">
+  <div class="modal-content">
+    <span class="modal-close" id="closeUploaderModal">&times;</span>
+    <h2>Upload Image to Cloudinary</h2>
+    <button id="upload-button" class="btn btn-primary">
+      <i class="fas fa-upload"></i> Choose File
+    </button>
+    <input type="file" id="file-input" accept="image/*" style="display:none;" />
+    <p id="status" class="message-container"></p>
+    <div id="uploaded-image-url" class="table-container" style="display:none;"></div>
+    <img id="image-preview" style="display:none; max-width:100%; max-height:300px; margin-top:15px; border-radius:6px; border:1px solid #ddd;" alt="Uploaded Image Preview"/>
+  </div>
+</div>
+
+    </main>
+
+    <!-- JS Files -->
+    <script src="./admin.js"></script>
+
+    <!-- ✅ Logout Logic -->
+    <script>
+      document.getElementById("adminLogoutLink").addEventListener("click", function (e) {
+        e.preventDefault();
+
+        // Clear localStorage or sessionStorage (if used)
+        localStorage.removeItem("adminToken");
+        sessionStorage.clear();
+
+        // Redirect to login page
+        window.location.href = "login.html"; // Make sure login.html exists
+      });
+    </script>
+</body>
+</html>
