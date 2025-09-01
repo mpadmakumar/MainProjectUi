@@ -159,7 +159,7 @@ function showCartPage() {
     document.getElementById('cartTotalContainer').classList.add('hidden');
   }
 }
-const GET_USER_API = "https://mainprojectapi.onrender.com/getUser";
+const GET_USER_API = "http://localhost:8081/MainProjectApis/getUser";
 
 async function showUserProfile() {
   hideAllContentSections();
@@ -228,24 +228,59 @@ const saveBtn = document.getElementById('saveBtn');
 const cancelBtn = document.getElementById('cancelBtn');
 const profileDetails = document.getElementById('profileDetails');
 
+function toggleButtons(editing) {
+  editBtn.classList.toggle('hidden', editing);
+  saveBtn.classList.toggle('hidden', !editing);
+  cancelBtn.classList.toggle('hidden', !editing);
+}
+
+// Edit mode
 editBtn.addEventListener('click', () => {
   originalData = {};
   profileDetails.querySelectorAll('[data-field]').forEach(p => {
     const value = p.textContent;
     originalData[p.dataset.field] = value;
-    p.outerHTML = `<input type="text" name="${p.dataset.field}" value="${value}" class="border border-gray-300 px-3 py-2 rounded-lg w-full focus:ring-2 focus:ring-yellow-400 transition" />`;
+    p.outerHTML = `<input type="text" name="${p.dataset.field}" value="${value}" 
+      class="border border-gray-300 px-3 py-2 rounded-lg w-full focus:ring-2 focus:ring-yellow-400 transition" />`;
   });
   toggleButtons(true);
 });
 
+// Save profile
 saveBtn.addEventListener('click', () => {
+  const updatedData = {};
   profileDetails.querySelectorAll('input').forEach(input => {
+    updatedData[input.name] = input.value;
     input.outerHTML = `<p class="text-lg font-medium text-gray-800" data-field="${input.name}">${input.value}</p>`;
   });
   toggleButtons(false);
 
-  // OPTIONAL: Call backend update API here
-  // fetch(UPDATE_USER_API, { method: "POST", body: JSON.stringify(updatedData) })
+  // 🔗 Call backend API
+  fetch("http://localhost:8081/MainProjectApis/UserProfileUpdate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updatedData)
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert("✅ Profile updated successfully!");
+      } else {
+        alert("❌ Update failed: " + data.message);
+      }
+    })
+    .catch(err => {
+      console.error("Error updating profile:", err);
+      alert("⚠️ Server error while updating profile");
+    });
+});
+
+// Cancel editing
+cancelBtn.addEventListener('click', () => {
+  profileDetails.querySelectorAll('input').forEach(input => {
+    input.outerHTML = `<p class="text-lg font-medium text-gray-800" data-field="${input.name}">${originalData[input.name]}</p>`;
+  });
+  toggleButtons(false);
 });
 
 cancelBtn.addEventListener('click', () => {
@@ -370,10 +405,10 @@ let currentSearchTerm = '';
 let currentProductId = null;
 
 // --- API Endpoints ---
-const PRODUCTS_API_URL = "https://mainprojectapi.onrender.com/viewProduct";
-const PRODUCT_DETAIL_API_URL = "https://mainprojectapi.onrender.com/viewProduct";
-const ADD_TO_CART_API_URL = "https://mainprojectapi.onrender.com/addToCart";
-const VIEW_CART_API_URL = "https://mainprojectapi.onrender.com/viewCart"; // New API endpoint
+const PRODUCTS_API_URL = "http://localhost:8081/MainProjectApis/viewProduct";
+const PRODUCT_DETAIL_API_URL = "http://localhost:8081/MainProjectApis/viewProduct";
+const ADD_TO_CART_API_URL = "http://localhost:8081/MainProjectApis/addToCart";
+const VIEW_CART_API_URL = "http://localhost:8081/MainProjectApis/viewCart"; // New API endpoint
 
 // --- Helper Functions for Messages ---
 function showMessage(targetDiv, iconClass, text, type = 'info') {
@@ -804,7 +839,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const formData = new FormData(form);
 
         try {
-            const res = await fetch("https://mainprojectapi.onrender.com/userRequest", {
+            const res = await fetch("http://localhost:8081/MainProjectApis/userRequest", {
                 method: "POST",
                 body: formData
             });
@@ -826,6 +861,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+
+
+
+
 
 // contact form
 const form = document.getElementById('contactForm');
@@ -997,7 +1037,7 @@ document.getElementById('proceedToPaymentBtn').addEventListener('click', async f
 
         // --- Step 1: Fetch the cart items ---
         console.log("Fetching cart items...");
-        const cartResponse = await fetch(`https://mainprojectapi.onrender.com/viewCart?userName=${userData.name}`);
+        const cartResponse = await fetch(`http://localhost:8081/MainProjectApis/viewCart?userName=${userData.name}`);
         if (!cartResponse.ok) {
             throw new Error("Failed to fetch cart from API.");
         }
@@ -1015,7 +1055,7 @@ document.getElementById('proceedToPaymentBtn').addEventListener('click', async f
         // --- Step 3: Log the final data and send it to the backend ---
         console.log("Final data being sent to servlet:", JSON.stringify(finalOrderData, null, 2)); // DEBUG: This is the most important log!
 
-        const response = await fetch('https://mainprojectapi.onrender.com/create-stripe-session', {
+        const response = await fetch('http://localhost:8081/MainProjectApis/create-stripe-session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(finalOrderData) // Send the combined data
@@ -1061,14 +1101,21 @@ async function showMyOrdersPage() {
   }
 
   try {
-    const response = await fetch(`https://mainprojectapi.onrender.com/viewOrders?userName=${userData.name}`);
-    const orders = await response.json();
+    // ✅ Check cached orders first
+    let orders = JSON.parse(localStorage.getItem('cachedOrders')) || [];
+
+    if (orders.length === 0) {
+      const response = await fetch(`http://localhost:8081/MainProjectApis/viewOrders?userName=${userData.name}`);
+      orders = await response.json();
+      localStorage.setItem('cachedOrders', JSON.stringify(orders));
+    }
 
     loadingMessage.classList.add('hidden');
 
     if (orders.length === 0) {
       noOrdersMessage.classList.remove('hidden');
     } else {
+      ordersContainer.innerHTML = ''; // clear before rendering
       orders.forEach(order => {
         const orderCard = document.createElement('div');
         orderCard.className = 'bg-white border border-gray-200 rounded-lg p-6 shadow-sm';
@@ -1082,7 +1129,7 @@ async function showMyOrdersPage() {
             statusColorClasses = 'bg-red-100 text-red-800';
         }
         
-        // --- THIS IS THE CRITICAL PART THAT ADDS THE BUTTON ---
+        // Cancel button for Pending orders
         let actionButtonHtml = '';
         if (order.status && order.status.toLowerCase() === 'pending') {
             actionButtonHtml = `<div class="mt-4 pt-4 border-t text-right">
@@ -1130,6 +1177,17 @@ async function showMyOrdersPage() {
     ordersContainer.innerHTML = '<p class="text-center text-red-600">Could not load orders. Please try again later.</p>';
   }
 }
+
+// ✅ Clear orders only in UI + cache (not DB)
+function clearOrdersUI() {
+  if (confirm("Are you sure you want to clear your order history view?")) {
+    const ordersContainer = document.getElementById('orders-list-container');
+    ordersContainer.innerHTML = '';
+    document.getElementById('no-orders-message').classList.remove('hidden');
+    localStorage.removeItem('cachedOrders'); // clear cache
+  }
+}
+
 //cancel order page
 window.cancelOrder = async (orderId) => {
     // 1. Show a confirmation box to prevent accidental clicks
@@ -1145,7 +1203,7 @@ window.cancelOrder = async (orderId) => {
         }
 
         // 3. Send the request to your backend servlet
-        const response = await fetch('https://mainprojectapi.onrender.com/cancelOrder', {
+        const response = await fetch('http://localhost:8081/MainProjectApis/cancelOrder', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
