@@ -159,7 +159,7 @@ function showCartPage() {
     document.getElementById('cartTotalContainer').classList.add('hidden');
   }
 }
-const GET_USER_API = "http://localhost:8081/MainProjectApis/getUser";
+const GET_USER_API = "https://mainprojectapi.onrender.com/getUser";
 
 async function showUserProfile() {
   hideAllContentSections();
@@ -256,7 +256,7 @@ saveBtn.addEventListener('click', () => {
   toggleButtons(false);
 
   // 🔗 Call backend API
-  fetch("http://localhost:8081/MainProjectApis/UserProfileUpdate", {
+  fetch("https://mainprojectapi.onrender.com/UserProfileUpdate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(updatedData)
@@ -405,10 +405,10 @@ let currentSearchTerm = '';
 let currentProductId = null;
 
 // --- API Endpoints ---
-const PRODUCTS_API_URL = "http://localhost:8081/MainProjectApis/viewProduct";
-const PRODUCT_DETAIL_API_URL = "http://localhost:8081/MainProjectApis/viewProduct";
-const ADD_TO_CART_API_URL = "http://localhost:8081/MainProjectApis/addToCart";
-const VIEW_CART_API_URL = "http://localhost:8081/MainProjectApis/viewCart"; // New API endpoint
+const PRODUCTS_API_URL = "https://mainprojectapi.onrender.com/viewProduct";
+const PRODUCT_DETAIL_API_URL = "https://mainprojectapi.onrender.com/viewProduct";
+const ADD_TO_CART_API_URL = "https://mainprojectapi.onrender.com/addToCart";
+const VIEW_CART_API_URL = "https://mainprojectapi.onrender.com/viewCart"; // New API endpoint
 
 // --- Helper Functions for Messages ---
 function showMessage(targetDiv, iconClass, text, type = 'info') {
@@ -839,7 +839,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const formData = new FormData(form);
 
         try {
-            const res = await fetch("http://localhost:8081/MainProjectApis/userRequest", {
+            const res = await fetch("https://mainprojectapi.onrender.com/userRequest", {
                 method: "POST",
                 body: formData
             });
@@ -1037,7 +1037,7 @@ document.getElementById('proceedToPaymentBtn').addEventListener('click', async f
 
         // --- Step 1: Fetch the cart items ---
         console.log("Fetching cart items...");
-        const cartResponse = await fetch(`http://localhost:8081/MainProjectApis/viewCart?userName=${userData.name}`);
+        const cartResponse = await fetch(`https://mainprojectapi.onrender.com/viewCart?userName=${userData.name}`);
         if (!cartResponse.ok) {
             throw new Error("Failed to fetch cart from API.");
         }
@@ -1055,7 +1055,7 @@ document.getElementById('proceedToPaymentBtn').addEventListener('click', async f
         // --- Step 3: Log the final data and send it to the backend ---
         console.log("Final data being sent to servlet:", JSON.stringify(finalOrderData, null, 2)); // DEBUG: This is the most important log!
 
-        const response = await fetch('http://localhost:8081/MainProjectApis/create-stripe-session', {
+        const response = await fetch('https://mainprojectapi.onrender.com/create-stripe-session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(finalOrderData) // Send the combined data
@@ -1105,7 +1105,7 @@ async function showMyOrdersPage() {
     let orders = JSON.parse(localStorage.getItem('cachedOrders')) || [];
 
     if (orders.length === 0) {
-      const response = await fetch(`http://localhost:8081/MainProjectApis/viewOrders?userName=${userData.name}`);
+      const response = await fetch(`https://mainprojectapi.onrender.com/viewOrders?userName=${userData.name}`);
       orders = await response.json();
       localStorage.setItem('cachedOrders', JSON.stringify(orders));
     }
@@ -1203,7 +1203,7 @@ window.cancelOrder = async (orderId) => {
         }
 
         // 3. Send the request to your backend servlet
-        const response = await fetch('http://localhost:8081/MainProjectApis/cancelOrder', {
+        const response = await fetch('https://mainprojectapi.onrender.com/cancelOrder', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
