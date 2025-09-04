@@ -1101,56 +1101,50 @@ async function showMyOrdersPage() {
   }
 
   try {
-    // ✅ Check cached orders first
-    let orders = JSON.parse(localStorage.getItem('cachedOrders')) || [];
-
-    if (orders.length === 0) {
-      const response = await fetch(`https://mainprojectapi.onrender.com/viewOrders?userName=${userData.name}`);
-      orders = await response.json();
-      localStorage.setItem('cachedOrders', JSON.stringify(orders));
-    }
+    // 🔄 Always fetch fresh data
+    const response = await fetch(`https://mainprojectapi.onrender.com/viewOrders?userName=${userData.name}`);
+    const orders = await response.json();
 
     loadingMessage.classList.add('hidden');
 
     if (orders.length === 0) {
       noOrdersMessage.classList.remove('hidden');
     } else {
-      ordersContainer.innerHTML = ''; // clear before rendering
+      ordersContainer.innerHTML = ''; 
       orders.forEach(order => {
         const orderCard = document.createElement('div');
         orderCard.className = 'bg-white border border-gray-200 rounded-lg p-6 shadow-sm';
-        
-        let statusColorClasses = 'bg-yellow-100 text-yellow-800'; // Default for Pending
+
+        let statusColorClasses = 'bg-yellow-100 text-yellow-800'; 
         if (order.status.toLowerCase() === 'shipped') {
-            statusColorClasses = 'bg-blue-100 text-blue-800';
+          statusColorClasses = 'bg-blue-100 text-blue-800';
         } else if (order.status.toLowerCase() === 'delivered') {
-            statusColorClasses = 'bg-green-100 text-green-800';
+          statusColorClasses = 'bg-green-100 text-green-800';
         } else if (order.status.toLowerCase() === 'cancelled') {
-            statusColorClasses = 'bg-red-100 text-red-800';
+          statusColorClasses = 'bg-red-100 text-red-800';
         }
-        
-        // Cancel button for Pending orders
+
+        // Cancel button only for pending orders
         let actionButtonHtml = '';
         if (order.status && order.status.toLowerCase() === 'pending') {
-            actionButtonHtml = `<div class="mt-4 pt-4 border-t text-right">
-                                  <button onclick="cancelOrder(${order.orderId})" 
-                                      class="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-600 transition">
-                                      Cancel Order
-                                  </button>
-                                </div>`;
+          actionButtonHtml = `<div class="mt-4 pt-4 border-t text-right">
+                                <button onclick="cancelOrder(${order.orderId})" 
+                                    class="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-600 transition">
+                                    Cancel Order
+                                </button>
+                              </div>`;
         }
 
         let itemsHtml = '<div class="mt-4 pt-4 border-t border-gray-200 space-y-4">';
         order.items.forEach(item => {
-            itemsHtml += `
-                <div class="flex items-center gap-4">
-                    <img src="${item.imageUrl || 'https://via.placeholder.com/100'}" alt="${item.productName}" class="w-16 h-16 object-cover rounded-md border">
-                    <div>
-                        <p class="font-semibold text-gray-800">${item.productName}</p>
-                        <p class="text-sm text-gray-500">Quantity: ${item.quantity}</p>
-                    </div>
-                </div>
-            `;
+          itemsHtml += `
+            <div class="flex items-center gap-4">
+              <img src="${item.imageUrl || 'https://via.placeholder.com/100'}" alt="${item.productName}" class="w-16 h-16 object-cover rounded-md border">
+              <div>
+                <p class="font-semibold text-gray-800">${item.productName}</p>
+                <p class="text-sm text-gray-500">Quantity: ${item.quantity}</p>
+              </div>
+            </div>`;
         });
         itemsHtml += '</div>';
 
@@ -1189,40 +1183,44 @@ function clearOrdersUI() {
 }
 
 //cancel order page
-window.cancelOrder = async (orderId) => {
-    // 1. Show a confirmation box to prevent accidental clicks
-    if (!confirm("Are you sure you want to cancel this order? This action cannot be undone.")) {
-        return; // Stop the function if the user clicks "Cancel"
-    }
+window.cancelOrder = async (orderId, userName) => {
+    if (!confirm("Are you sure you want to cancel this order?")) return;
 
     try {
-        // 2. Get the logged-in user's data
-        const userData = JSON.parse(localStorage.getItem('userData'));
+       const userData = JSON.parse(localStorage.getItem('userData'));
         if (!userData || !userData.name) {
             throw new Error("You must be logged in to cancel an order.");
         }
-
-        // 3. Send the request to your backend servlet
-        const response = await fetch('https://mainprojectapi.onrender.com/cancelOrder', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        let response = await fetch("http://localhost:8081/MainProjectApis/cancelOrder", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify({
                 orderId: orderId,
-                userName: userData.name // Send both orderId and userName for security
+                userName: userData.name   // ✅ userName backendல தேவையிருக்கு
             })
         });
 
-        const result = await response.json();
+        let data = await response.json();
 
-        // 4. Handle the response from the servlet
-        if (result.status === 'success') {
-            alert(result.message);
-            showMyOrdersPage(); // Refresh the orders list to show the new "Cancelled" status
+        if (data.status === "success") {
+            // UI update
+            let orderRow = document.getElementById(`order-${orderId}`);
+            if (orderRow) {
+                orderRow.querySelector(".order-status").textContent = "Cancelled";
+                let btn = orderRow.querySelector(".cancel-btn");
+                if (btn) {
+                    btn.disabled = true;
+                    btn.textContent = "Cancelled";
+                }
+            }
+            alert(data.message);
         } else {
-            throw new Error(result.message);
+            alert(data.message);
         }
     } catch (error) {
-        console.error("Failed to cancel order:", error);
-        alert(`Error: ${error.message}`);
+        console.error("Error:", error);
+        alert("Failed to cancel order");
     }
 };
