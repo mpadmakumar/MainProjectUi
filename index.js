@@ -1,5 +1,4 @@
 
-
 // --- Global Section References ---
 const heroSection = document.getElementById('hero-section');
 const categoriesSection = document.getElementById('categories-section');
@@ -33,17 +32,20 @@ function showAboutPage() {
   hideAllContentSections();
   aboutSection.classList.remove('hidden');
   window.scrollTo({ top: aboutSection.offsetTop, behavior: 'smooth' });
+   localStorage.setItem('lastSection', 'about');
 }
 function showContactPage() {
   hideAllContentSections();
   contactSection.classList.remove('hidden');
   window.scrollTo({ top: contactSection.offsetTop, behavior: 'smooth' });
+   localStorage.setItem('lastSection', 'contact');
 }
 
 function showCustomDesigntPage() {
   hideAllContentSections();
     customDesign.classList.remove('hidden');
   window.scrollTo({ top:  customDesign.offsetTop, behavior: 'smooth' });
+   localStorage.setItem('lastSection', 'customDesign');
  }
 function showHomePage() {
   hideAllContentSections();
@@ -52,12 +54,13 @@ function showHomePage() {
   featuredProductsSection.classList.remove('hidden');
   //aboutSection.classList.remove('hidden');
   window.scrollTo({ top: 0, behavior: 'smooth' });
+   localStorage.setItem('lastSection', 'home');
 }
 async function showCheckOutPage() {
   hideAllContentSections();
   CheckOutSection.classList.remove('hidden');
   window.scrollTo({ top: CheckOutSection.offsetTop, behavior: 'smooth' });
-
+ localStorage.setItem('lastSection', 'checkout');
   const userData = JSON.parse(localStorage.getItem('userData'));
   if (!userData || !userData.name) {
     alert("Please login to proceed to checkout.");
@@ -107,7 +110,7 @@ function showConfirmationPage() {
     hideAllContentSections();
     confirmationSection.classList.remove('hidden');
     window.scrollTo({ top: confirmationSection.offsetTop, behavior: 'smooth' });
-
+   localStorage.setItem('lastSection', 'confirmation');
     // 1. Get data from the checkout form
     const customerName = document.getElementById('checkoutCustomerName').value;
     const address = document.getElementById('checkoutAddress').value;
@@ -144,12 +147,14 @@ function showProductsPage() {
   productListSection.classList.remove('hidden');
   productDetailView.classList.add('hidden');
   window.scrollTo({ top: allProductsContainer.offsetTop, behavior: 'smooth' });
+  localStorage.setItem('lastSection', 'products');
 }
 
 function showCartPage() {
   hideAllContentSections();
   cartView.classList.remove('hidden');
   window.scrollTo({ top: cartView.offsetTop, behavior: 'smooth' });
+  localStorage.setItem('lastSection', 'cart');
   const userData = JSON.parse(localStorage.getItem('userData'));
   if (userData && userData.name) {
     renderCartItems(userData.name);
@@ -159,13 +164,13 @@ function showCartPage() {
     document.getElementById('cartTotalContainer').classList.add('hidden');
   }
 }
-const GET_USER_API = "https://mainprojectapi.onrender.com/getUser";
+const GET_USER_API = "https://mainprojectapi.onrender.com/MainProjectApis/getUser";
 
 async function showUserProfile() {
   hideAllContentSections();
   document.getElementById('userProfileSection').classList.remove('hidden');
   window.scrollTo({ top: 0, behavior: 'smooth' });
-
+  localStorage.setItem('lastSection', 'userProfile');
   const userData = JSON.parse(localStorage.getItem('userData'));
   if (!userData || !userData.name) {
     alert("Login required to view profile");
@@ -336,17 +341,8 @@ function navigateAndCloseMenu(callback) {
   }
 }
 
-window.onload = function checkLoginStatus() {
-  const isLoggedIn = localStorage.getItem('isLoggedIn');
-  const userData = JSON.parse(localStorage.getItem('userData'));
-  if (isLoggedIn === 'true' && userData) {
-    updateUIForLogin(userData);
-  } else {
-    updateUIForLogout();
-  }
-  showHomePage();
-  fetchProducts();
-};
+
+
 function updateUIForLogin(userData) {
   document.getElementById('loginContainer').classList.add('hidden');
   document.getElementById('userProfile').classList.remove('hidden');
@@ -367,7 +363,7 @@ function updateUIForLogin(userData) {
     </div>
     <a href="#" onclick="showUserProfile()"  class="block py-3 px-6 text-gray-700 hover:bg-yellow-50 flex items-center"><i class="fas fa-user mr-3"></i>My Profile</a>
     <a href="#" onclick="showCartPage()" class="block py-3 px-6 text-gray-700 hover:bg-yellow-50 flex items-center"><i class="fas fa-shopping-cart mr-3"></i>My Cart</a>
-    <li><a href="#" onclick="showMyOrdersPage()" class="block py-3 px-6 text-gray-700 hover:bg-yellow-50 flex items-center"><i class="fas fa-box mr-3"></i>My Orders</a></li>
+    <a href="#" onclick="showMyOrdersPage()" class="block py-3 px-6 text-gray-700 hover:bg-yellow-50 flex items-center"><i class="fas fa-box mr-3"></i>My Orders</a>
     <hr class="my-1 border-t border-gray-200">
     <button onclick="handleLogout()" class="w-full text-left py-3 px-6 text-red-600 hover:bg-red-100 flex items-center"><i class="fas fa-sign-out-alt mr-3"></i>Logout</button>
   `;
@@ -544,7 +540,7 @@ async function showProductDetail(productId) {
   productDetailContentDiv.classList.add('hidden');
   categoryDiv.classList.add('hidden')
   showLoading(productDetailLoadingMessageDiv);
-
+   localStorage.setItem('lastSection', 'productDetail');
   try {
     const response = await fetch(`${PRODUCT_DETAIL_API_URL}?id=${productId}`);
     const data = await response.json();
@@ -812,20 +808,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("customDesignForm");
     const submitBtn = document.getElementById("submitBtn");
     const formMessage = document.getElementById("formMessage");
+    const deliveryDateInput = document.getElementById("deliveryDate"); // தேதி input-ஐப் பெறவும்
 
     const showMessage = (msg, isSuccess) => {
-        formMessage.textContent = msg; // ✅ Correct
-        alert("Message:"+ msg);
+        formMessage.textContent = msg;
+        alert("Message:"+ msg); 
 
-        // Reset classes
         formMessage.className = `mt-6 text-sm font-semibold p-4 rounded-lg ${
             isSuccess ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
         }`;
-
         formMessage.classList.remove("hidden");
         formMessage.scrollIntoView({ behavior: "smooth" });
 
-        // Auto hide after 5 sec
         setTimeout(() => {
             formMessage.classList.add("hidden");
         }, 5000);
@@ -833,6 +827,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
+        
+        // --- 📅 புதிய தேதி சரிபார்ப்பு (New Date Validation) ---
+        const selectedDateValue = deliveryDateInput.value;
+        if (!selectedDateValue) {
+            showMessage("❌ Please select a delivery date.", false);
+            return; // தேதி தேர்ந்தெடுக்கவில்லை என்றால், இங்கேயே நிறுத்தவும்
+        }
+
+        const selectedDate = new Date(selectedDateValue);
+        const today = new Date();
+        
+        // நேரத்தை நீக்கி, தேதியை மட்டும் ஒப்பிடுவதற்காக
+        today.setHours(0, 0, 0, 0); 
+        if (selectedDate <= today) {
+            showMessage("❌ Please select a future date. Today or past dates are not allowed.", false);
+            return; 
+        }
+
+
         submitBtn.disabled = true;
         submitBtn.innerText = "Submitting...";
 
@@ -1083,7 +1096,7 @@ async function showMyOrdersPage() {
   hideAllContentSections();
   myOrdersSection.classList.remove('hidden');
   window.scrollTo({ top: myOrdersSection.offsetTop, behavior: 'smooth' });
-
+  localStorage.setItem('lastSection', 'order');
   const userData = JSON.parse(localStorage.getItem('userData'));
   const ordersContainer = document.getElementById('orders-list-container');
   const loadingMessage = document.getElementById('orders-loading-message');
@@ -1183,6 +1196,7 @@ function clearOrdersUI() {
 }
 
 //cancel order page
+
 window.cancelOrder = async (orderId, userName) => {
     if (!confirm("Are you sure you want to cancel this order?")) return;
 
@@ -1223,4 +1237,32 @@ window.cancelOrder = async (orderId, userName) => {
         console.error("Error:", error);
         alert("Failed to cancel order");
     }
+};
+
+window.onload = function checkLoginStatus() {
+  const isLoggedIn = localStorage.getItem('isLoggedIn');
+  const userData = JSON.parse(localStorage.getItem('userData'));
+  if (isLoggedIn === 'true' && userData) {
+    updateUIForLogin(userData);
+  } else {
+    updateUIForLogout();
+  }
+
+  // Restore last visited section
+  const lastSection = localStorage.getItem('lastSection');
+  switch(lastSection) {
+    case 'about': showAboutPage(); break;
+    case 'contact': showContactPage(); break;
+    case 'customDesign': showCustomDesigntPage(); break;
+    case 'checkout': showCheckOutPage(); break;
+    //case 'confirmation': showConfirmationPage(); break;
+    case 'cart': showCartPage(); break;
+    case 'userProfile': showUserProfile(); break;
+    case 'products': showProductsPage(); break;
+    //case 'productDetail':showProductDetail(); break;
+    case 'order': showMyOrdersPage() ; break;
+    default: showHomePage();
+  }
+
+  fetchProducts();
 };
