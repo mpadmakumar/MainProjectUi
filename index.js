@@ -1191,7 +1191,7 @@ window.cancelOrder = async (orderId, userName) => {
         if (!userData || !userData.name) {
             throw new Error("You must be logged in to cancel an order.");
         }
-        let response = await fetch("http://localhost:8081/MainProjectApis/cancelOrder", {
+        let response = await fetch("https://mainprojectapi.onrender.com/cancelOrder", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
