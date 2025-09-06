@@ -344,7 +344,30 @@
             .data-table td img { width: 40px; height: 40px; }
         }
 
+/* டெஸ்க்டாப்பில் மொபைல் logout பட்டனை மறைக்கவும் */
+.mobile-only-logout {
+    display: none;
+}
 
+/* மொபைல் view-வில் logout பட்டனைக் காண்பிக்கவும் (992px-க்கு கீழ்) */
+@media (max-width: 992px) {
+    .admin-sidebar .sidebar-nav .mobile-only-logout {
+        display: list-item; /* பட்டியலின் ஒரு பகுதியாக காண்பிக்கவும் */
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.15); /* ஒரு பிரிப்பான் கோடு */
+    }
+
+    .admin-sidebar .sidebar-nav .mobile-only-logout a {
+        color: #e74c3c; /* சிவப்பு நிறம் */
+        font-weight: 600;
+    }
+
+    .admin-sidebar .sidebar-nav .mobile-only-logout a:hover {
+        background-color: #c0392b; /* hover-ன் போது அடர் சிவப்பு */
+        color: #fff;
+    }
+}
 
         .styled-table {
     width: 100%;
