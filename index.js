@@ -164,7 +164,7 @@ function showCartPage() {
     document.getElementById('cartTotalContainer').classList.add('hidden');
   }
 }
-const GET_USER_API = "https://mainprojectapi.onrender.com/MainProjectApis/getUser";
+const GET_USER_API = "https://mainprojectapi.onrender.com/getUser";
 
 async function showUserProfile() {
   hideAllContentSections();
