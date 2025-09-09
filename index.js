@@ -1048,7 +1048,7 @@ document.getElementById('proceedToPaymentBtn').addEventListener('click', async f
 
         // --- படி 1: கார்ட் பொருட்களைப் பெறுதல் ---
         console.log("Fetching cart items...");
-        const cartResponse = await fetch(`http://localhost:8081/MainProjectApis/viewCart?userName=${userData.name}`);
+        const cartResponse = await fetch(`https://mainprojectapi.onrender.com/viewCart?userName=${userData.name}`);
         if (!cartResponse.ok) {
             throw new Error("Failed to fetch cart from API.");
         }
@@ -1069,7 +1069,7 @@ document.getElementById('proceedToPaymentBtn').addEventListener('click', async f
         // --- படி 2: உங்கள் Cashfree Servlet-க்கு தரவை அனுப்பவும் ---
         console.log("Final data being sent to Cashfree servlet:", JSON.stringify(finalOrderData, null, 2));
 
-        const response = await fetch('http://localhost:8081/MainProjectApis/create-cashfree-session', {
+        const response = await fetch('https://mainprojectapi.onrender.com/create-cashfree-session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(finalOrderData)
