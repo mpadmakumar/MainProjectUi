@@ -1040,54 +1040,63 @@ document.getElementById('reviewOrderBtn').addEventListener('click', function() {
 // payment btn
 document.getElementById('proceedToPaymentBtn').addEventListener('click', async function() {
     
-    const stripe = Stripe('pk_test_51RwjSDEgOdLsD61ePXI7WM9rM3TaEVekqTb268skgylSKRZLD9pdvzfKOOv0HZ5jgW5KHZluNjTApJMA5GEtjlpj00kt5PAkkn'); // ⚠️ PASTE YOUR PUBLISHABLE KEY
-    
     try {
         const userData = JSON.parse(localStorage.getItem('userData'));
         if (!userData || !userData.name) {
             throw new Error("User not logged in");
         }
 
-        // --- Step 1: Fetch the cart items ---
+        // --- படி 1: கார்ட் பொருட்களைப் பெறுதல் ---
         console.log("Fetching cart items...");
-        const cartResponse = await fetch(`https://mainprojectapi.onrender.com/viewCart?userName=${userData.name}`);
+        const cartResponse = await fetch(`http://localhost:8081/MainProjectApis/viewCart?userName=${userData.name}`);
         if (!cartResponse.ok) {
             throw new Error("Failed to fetch cart from API.");
         }
         const cartItems = await cartResponse.json();
-        console.log("Cart items fetched:", cartItems); // DEBUG: Check if cart items are correct
-
         if (!cartItems || cartItems.length === 0) {
             throw new Error("Cannot proceed with an empty cart.");
         }
         
-        // --- Step 2: Add cartItems to the finalOrderData object ---
-        // 'finalOrderData' is the global variable created by showConfirmationPage()
+        // finalOrderData-வில் கார்ட் பொருட்களைச் சேர்க்கவும்
         finalOrderData.cartItems = cartItems;
 
-        // --- Step 3: Log the final data and send it to the backend ---
-        console.log("Final data being sent to servlet:", JSON.stringify(finalOrderData, null, 2)); // DEBUG: This is the most important log!
+        // --- மிக முக்கியமான வரி இங்கே சேர்க்கப்பட்டுள்ளது ---
+        // success.html பக்கத்திற்குத் தேவைப்படும் ஆர்டர் விவரங்களை localStorage-இல் சேமிக்கவும்.
+        localStorage.setItem('finalOrderDataForFulfillment', JSON.stringify(finalOrderData));
+        console.log("Order data saved to localStorage for fulfillment.");
+        // ----------------------------------------------------
 
-        const response = await fetch('https://mainprojectapi.onrender.com/create-stripe-session', {
+        // --- படி 2: உங்கள் Cashfree Servlet-க்கு தரவை அனுப்பவும் ---
+        console.log("Final data being sent to Cashfree servlet:", JSON.stringify(finalOrderData, null, 2));
+
+        const response = await fetch('http://localhost:8081/MainProjectApis/create-cashfree-session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(finalOrderData) // Send the combined data
+            body: JSON.stringify(finalOrderData)
         });
         
-        const session = await response.json();
+        const sessionData = await response.json();
 
-        if (session.error) { 
-            throw new Error(session.error); 
+        if (sessionData.error) { 
+            throw new Error(sessionData.error); 
         }
 
-        const result = await stripe.redirectToCheckout({ sessionId: session.id });
-
-        if (result.error) { 
-            throw new Error(result.error.message); 
+        const paymentSessionId = sessionData.payment_session_id;
+        if (!paymentSessionId) {
+            throw new Error("Failed to get payment_session_id from the server.");
         }
+
+        // --- படி 3: Cashfree Checkout-ஐத் தொடங்கவும் ---
+        const cashfree = new Cashfree({ mode: "sandbox" }); 
+        
+        console.log("Initializing Cashfree Checkout...");
+        cashfree.checkout({
+            paymentSessionId: paymentSessionId,
+            redirectTarget: "_self"
+        });
 
     } catch(error) {
-        console.error(error); // This will now show the detailed error
+        console.error(error);
         alert(`Payment Error: ${error.message}`);
     }
 });
@@ -1164,7 +1173,7 @@ async function showMyOrdersPage() {
         orderCard.innerHTML = `
           <div class="flex flex-col md:flex-row justify-between md:items-center">
             <div>
-              <p class="text-lg font-bold text-gray-800">Order #${order.orderId}</p>
+              <p class="text-lg font-bold text-gray-800">Order #${order.orderIdtext}</p>
               <p class="text-sm text-gray-500">Placed on: ${order.orderDate}</p>
             </div>
             <div class="mt-4 md:mt-0 text-left md:text-right">

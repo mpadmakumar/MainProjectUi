@@ -4,9 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Lustre covering - Home</title>
-  <script src="https://js.stripe.com/v3/"></script>
+  <!-- <script src="https://js.stripe.com/v3/"></script> -->
+   <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
   <style>
      html, body {
     scroll-behavior: smooth;
@@ -67,6 +71,81 @@
       width: 60px;
       text-align: center;
     }
+   
+
+.shop-name-animated {
+  font-family: 'Great Vibes', cursive;
+  font-size: 45px;
+  font-weight: 500;
+  text-decoration: none;
+
+  /* --- அனிமேஷனுக்கான முக்கியப் பகுதி --- */
+  
+  /* 1. புதிய ரத்தினக் கல் நிறங்கள் கொண்ட Gradient */
+  background: linear-gradient(
+    90deg, 
+    #0F52BA, /* Sapphire Blue */
+    #9966CC, /* Amethyst Purple */
+    #50C878, /* Emerald Green */
+    #E0115F, /* Ruby Red */
+    #0F52BA  /* மீண்டும் Sapphire Blue, தடையற்ற ஓட்டத்திற்கு */
+  );
+  
+  /* 2. Gradient-இன் அளவை பெரிதாக்கவும் */
+  background-size: 400% 100%;
+  
+  /* 3. Gradient-ஐ எழுத்துக்களில் மட்டும் காண்பிக்கவும் */
+  -webkit-background-clip: text;
+  background-clip: text;
+  
+  /* 4. எழுத்தின் இயல்பு நிறத்தை Transparent ஆக்கவும் */
+  -webkit-text-fill-color: transparent;
+  
+  /* 5. அனிமேஷனை இயக்கவும் */
+  animation: animate-jewel-gradient 12s ease-in-out infinite;
+}
+
+.shop-name-animated:hover {
+    animation-duration: 6s; /* மவுஸ் மேலே செல்லும்போது வேகம் அதிகரிக்க */
+}
+
+
+/* --- Keyframes: அனிமேஷன் எப்படி நகர வேண்டும் என்று கூறுகிறது --- */
+@keyframes animate-jewel-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+.banner-headline {
+  font-family: 'Playfair Display', serif;
+  font-size: 4.5rem; /* கணினிக்கு பெரிய அளவு (72px) */
+  font-weight: 700;  /* தடிமனான எழுத்து */
+  color: white;
+  text-align: center;
+  line-height: 1.2;
+  
+  /* படத்திற்கு மேலே எழுத்து தெளிவாகத் தெரிய ஒரு சிறிய நிழல் */
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6); 
+}
+
+/* மொபைல் திரைகளுக்கு எழுத்தின் அளவைக் குறைத்தல் */
+@media (max-width: 768px) {
+  .banner-headline {
+    font-size: 3rem; /* மொபைலுக்கு சற்று சிறிய அளவு (48px) */
+  }
+}
+
+@media (max-width: 480px) {
+    .banner-headline {
+      font-size: 2.5rem; /* மிகவும் சிறிய மொபைலுக்கு (40px) */
+    }
+}
   </style>
 </head>
 <body class="bg-gray-200 text-gray-800 font-sans ">
@@ -75,7 +154,7 @@
     <div class="flex justify-between items-center py-4">
       <!-- Logo -->
       <div class="flex-shrink-0">
-        <a href="#" class="text-2xl md:text-3xl font-bold text-yellow-700 hover:text-yellow-800 transition" onclick="showHomePage()">Lustre covering</a>
+        <a href="#" class="text-3xl md:text-3xl font-bold text-yellow-700 hover:text-yellow-800 transition shop-name-animated" onclick="showHomePage()">Lustre covering</a>
       </div>
 
       <!-- Desktop Menu -->
@@ -160,7 +239,7 @@
   <img src="./golden-jewelry1.jpeg" alt="Auruline Banner" class="absolute inset-0 w-full h-full object-cover z-0" />
 
   <div class="absolute inset-0 bg-black backdrop-blur-sm bg-opacity-25 flex flex-col items-center justify-center text-center px-4 z-10">
-    <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-4 leading-tight drop-shadow-lg">
+    <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-4 leading-tight drop-shadow-lg banner-headline">
       Welcome to Lustre covering
     </h2>
     <p class="text-base sm:text-lg md:text-xl text-white mb-6 max-w-2xl mx-auto drop-shadow" id="welcomeMessage">

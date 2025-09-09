@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             itemsHtml += '</div>';
             modalContent.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-sm">
-                <div><strong class="block text-gray-500 font-medium">Order ID:</strong><p class="text-gray-900 font-semibold">#${details.orderId}</p></div>
+                <div><strong class="block text-gray-500 font-medium">Order ID:</strong><p class="text-gray-900 font-semibold">#${details.orderIdText}</p></div>
                 <div><strong class="block text-gray-500 font-medium">Order Date:</strong><p class="text-gray-900">${details.orderDate}</p></div>
                 <div><strong class="block text-gray-500 font-medium">Customer:</strong><p class="text-gray-900">${details.customerName}</p></div>
                 <div><strong class="block text-gray-500 font-medium">Status:</strong><span class="px-2 py-1 font-semibold rounded-full bg-yellow-100 text-yellow-800">${details.status}</span></div>
