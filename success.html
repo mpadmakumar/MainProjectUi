@@ -24,38 +24,52 @@
         </div>
     </div>
     
-    <script >
-        document.addEventListener("DOMContentLoaded", async () => {
-    // Get the Stripe Session ID from the page URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const sessionId = urlParams.get('session_id');
+   <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        // 1. URL-இலிருந்து Cashfree order_id-ஐப் பெறவும்
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('order_id');
 
-    if (sessionId) {
-        try {
-            // Send the session ID to your new backend servlet to save the order
-            const response = await fetch('https://mainprojectapi.onrender.com/fulfill-order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sessionId: sessionId })
-            });
+        // 2. பேமெண்ட்டுக்கு முன் சேமித்த ஆர்டர் விவரங்களை localStorage-இலிருந்து பெறவும்
+        const finalOrderData = JSON.parse(localStorage.getItem('finalOrderDataForFulfillment'));
 
-            const orderDetails = await response.json();
+        if (orderId && finalOrderData) {
+            try {
+                // 3. orderId மற்றும் ஆர்டர் விவரங்கள் இரண்டையும் இணைத்து Backend-க்கு அனுப்பவும்
+                const requestData = {
+                    orderId: orderId,
+                    ...finalOrderData // finalOrderData-வில் உள்ள அனைத்தையும் இதனுடன் சேர்க்கவும்
+                };
 
-            // If the server confirms success, show the success message
-            if (orderDetails.status === 'success') {
-                document.getElementById('loading-spinner').classList.add('hidden');
-                document.getElementById('success-message').classList.remove('hidden');
-                document.getElementById('order-info').textContent = `Your Order ID is #${orderDetails.orderId}`;
-            } else {
-                throw new Error(orderDetails.message || 'Failed to process order.');
+                // 4. புதிய Cashfree Servlet URL-ஐ அழைக்கவும்
+                const response = await fetch('https://mainprojectapi.onrender.com/fulfill-order-cashfree', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData)
+                });
+
+                const orderDetails = await response.json();
+
+                if (orderDetails.status === 'success') {
+                    document.getElementById('loading-spinner').classList.add('hidden');
+                    document.getElementById('success-message').classList.remove('hidden');
+                    document.getElementById('order-info').textContent = `Your Order ID is #${orderDetails.orderId}`;
+                    
+                    // 5. ஆர்டர் முடிந்ததும் localStorage-ஐ காலி செய்யவும்
+                    localStorage.removeItem('finalOrderDataForFulfillment');
+                } else {
+                    throw new Error(orderDetails.message || 'Failed to process order.');
+                }
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('message-container').innerHTML = `<h1 class="text-2xl font-semibold text-red-600">Error</h1><p>There was an issue confirming your order. Please contact support.</p>`;
             }
-
-        } catch (error) {
-            console.error(error);
-            document.getElementById('message-container').innerHTML = `<h1 class="text-2xl font-semibold text-red-600">Error</h1><p>There was an issue confirming your order. Please contact support.</p>`;
+        } else {
+            // order_id அல்லது localStorage-இல் தரவு இல்லை என்றால் பிழையைக் காண்பிக்கவும்
+            document.getElementById('message-container').innerHTML = `<h1 class="text-2xl font-semibold text-red-600">Error</h1><p>Could not find order details to confirm payment. Please contact support.</p>`;
         }
-    }
-});
-    </script>
+    });
+</script>
 </body>
 </html>
