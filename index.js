@@ -28,17 +28,31 @@ function hideAllContentSections() {
     confirmationSection.classList.add('hidden');
     myOrdersSection.classList.add('hidden');
 }
+function setActiveNav(linkText) {
+  const links = document.querySelectorAll('.nav-link');
+  links.forEach(link => {
+    link.classList.remove('active'); // clear old
+  });
+
+  const activeLink = Array.from(links).find(link => link.textContent.trim() === linkText);
+  if (activeLink) {
+    activeLink.classList.add('active');
+  }
+}
+
 function showAboutPage() {
   hideAllContentSections();
   aboutSection.classList.remove('hidden');
   window.scrollTo({ top: aboutSection.offsetTop, behavior: 'smooth' });
    localStorage.setItem('lastSection', 'about');
+   setActiveNav("About");
 }
 function showContactPage() {
   hideAllContentSections();
   contactSection.classList.remove('hidden');
   window.scrollTo({ top: contactSection.offsetTop, behavior: 'smooth' });
    localStorage.setItem('lastSection', 'contact');
+   setActiveNav("Contact");
 }
 
 function showCustomDesigntPage() {
@@ -55,36 +69,43 @@ function showHomePage() {
   //aboutSection.classList.remove('hidden');
   window.scrollTo({ top: 0, behavior: 'smooth' });
    localStorage.setItem('lastSection', 'home');
+   setActiveNav("Home");
 }
 async function showCheckOutPage() {
   hideAllContentSections();
-  CheckOutSection.classList.remove('hidden');
-  window.scrollTo({ top: CheckOutSection.offsetTop, behavior: 'smooth' });
- localStorage.setItem('lastSection', 'checkout');
-  const userData = JSON.parse(localStorage.getItem('userData'));
+  CheckOutSection.classList.remove("hidden");
+  window.scrollTo({ top: CheckOutSection.offsetTop, behavior: "smooth" });
+  localStorage.setItem("lastSection", "checkout");
+
+  const userData = JSON.parse(localStorage.getItem("userData"));
   if (!userData || !userData.name) {
     alert("Please login to proceed to checkout.");
     showHomePage(); // Redirect if not logged in
     return;
   }
 
+  // 🆕 Reset form + payment method when checkout opens
+  document.getElementById("checkoutForm").reset();
+  const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked');
+  if (selectedMethod) selectedMethod.checked = false;
+
   // Fetch cart items to calculate total and show summary
   try {
     const response = await fetch(`${VIEW_CART_API_URL}?userName=${userData.name}`);
-    if (!response.ok) throw new Error('Failed to load cart for summary.');
+    if (!response.ok) throw new Error("Failed to load cart for summary.");
     const cartItems = await response.json();
 
     if (cartItems.length === 0) {
-        alert("Your cart is empty. Add items before checking out.");
-        showCartPage(); // Go back to cart if it's empty
-        return;
+      alert("Your cart is empty. Add items before checking out.");
+      showCartPage(); // Go back to cart if it's empty
+      return;
     }
 
     let totalPrice = 0;
-    const summaryContainer = document.getElementById('checkoutOrderSummary');
-    summaryContainer.innerHTML = ''; // Clear loading message
+    const summaryContainer = document.getElementById("checkoutOrderSummary");
+    summaryContainer.innerHTML = ""; // Clear loading message
 
-    cartItems.forEach(item => {
+    cartItems.forEach((item) => {
       const itemTotal = item.price * item.quantity;
       totalPrice += itemTotal;
       const summaryItemHtml = `
@@ -93,24 +114,26 @@ async function showCheckOutPage() {
           <span class="font-medium text-gray-800">₹${itemTotal.toFixed(2)}</span>
         </div>
       `;
-      summaryContainer.insertAdjacentHTML('beforeend', summaryItemHtml);
+      summaryContainer.insertAdjacentHTML("beforeend", summaryItemHtml);
     });
 
-    document.getElementById('checkoutSubtotal').textContent = `₹${totalPrice.toFixed(2)}`;
-    document.getElementById('checkoutTotalPrice').textContent = `₹${totalPrice.toFixed(2)}`;
+    document.getElementById("checkoutSubtotal").textContent = `₹${totalPrice.toFixed(2)}`;
+    document.getElementById("checkoutTotalPrice").textContent = `₹${totalPrice.toFixed(2)}`;
 
   } catch (error) {
     console.error("Checkout summary error:", error);
-    document.getElementById('checkoutOrderSummary').innerHTML = '<p class="text-red-500">Could not load order summary.</p>';
+    document.getElementById("checkoutOrderSummary").innerHTML =
+      '<p class="text-red-500">Could not load order summary.</p>';
   }
+}
 
- }
  // ADD THIS NEW FUNCTION to index.js
 function showConfirmationPage() {
     hideAllContentSections();
     confirmationSection.classList.remove('hidden');
     window.scrollTo({ top: confirmationSection.offsetTop, behavior: 'smooth' });
-   localStorage.setItem('lastSection', 'confirmation');
+    localStorage.setItem('lastSection', 'confirmation');
+
     // 1. Get data from the checkout form
     const customerName = document.getElementById('checkoutCustomerName').value;
     const address = document.getElementById('checkoutAddress').value;
@@ -119,28 +142,41 @@ function showConfirmationPage() {
     const mobileNumber = document.getElementById('checkoutMobile').value;
     const totalText = document.getElementById('checkoutTotalPrice').textContent;
 
-    // 2. Display the data on the confirmation page
+    // 🆕 2. Get selected payment method
+    const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked');
+    let paymentText = "Not Selected";
+    if (selectedMethod) {
+        paymentText = selectedMethod.value === "cod"
+            ? "Cash on Delivery"
+            : "Online Payment (UPI / Wallet / Card)";
+    }
+
+    // 3. Display the data on the confirmation page
     document.getElementById('confirm-name').textContent = customerName;
     document.getElementById('confirm-address').textContent = address;
     document.getElementById('confirm-city-pincode').textContent = `${city} - ${pincode}`;
     document.getElementById('confirm-mobile').textContent = `Mobile: ${mobileNumber}`;
     document.getElementById('confirm-subtotal').textContent = totalText;
     document.getElementById('confirm-total').textContent = totalText;
+    document.getElementById('confirm-payment').textContent = paymentText; // 🆕 Added
 
-    // 3. Store the data in our global variable to use for payment
+    // 4. Store the data in our global variable to use for payment
     finalOrderData = {
         customerName,
         address,
         city,
         pincode,
         mobileNumber,
-        totalAmount: parseFloat(totalText.replace('₹', ''))
+        totalAmount: parseFloat(totalText.replace('₹', '')),
+        paymentMethod: selectedMethod ? selectedMethod.value : null // 🆕 store payment method
     };
+
     const userData = JSON.parse(localStorage.getItem('userData'));
     if (userData && userData.name) {
         finalOrderData.userName = userData.name;
     }
 }
+
 function showProductsPage() {
   hideAllContentSections();
   allProductsContainer.classList.remove('hidden');
@@ -148,6 +184,7 @@ function showProductsPage() {
   productDetailView.classList.add('hidden');
   window.scrollTo({ top: allProductsContainer.offsetTop, behavior: 'smooth' });
   localStorage.setItem('lastSection', 'products');
+  setActiveNav("Products");
 }
 
 function showCartPage() {
@@ -363,7 +400,7 @@ function updateUIForLogin(userData) {
     </div>
     <a href="#" onclick="showUserProfile()"  class="block py-3 px-6 text-gray-700 hover:bg-yellow-50 flex items-center"><i class="fas fa-user mr-3"></i>My Profile</a>
     <a href="#" onclick="showCartPage()" class="block py-3 px-6 text-gray-700 hover:bg-yellow-50 flex items-center"><i class="fas fa-shopping-cart mr-3"></i>My Cart</a>
-    <a href="#" onclick="showMyOrdersPage()" class="block py-3 px-6 text-gray-700 hover:bg-yellow-50 flex items-center"><i class="fas fa-box mr-3"></i>My Orders</a>
+    <li><a href="#" onclick="showMyOrdersPage()" class="block py-3 px-6 text-gray-700 hover:bg-yellow-50 flex items-center"><i class="fas fa-box mr-3"></i>My Orders</a></li>
     <hr class="my-1 border-t border-gray-200">
     <button onclick="handleLogout()" class="w-full text-left py-3 px-6 text-red-600 hover:bg-red-100 flex items-center"><i class="fas fa-sign-out-alt mr-3"></i>Logout</button>
   `;
@@ -577,11 +614,32 @@ function renderProductDetailContent(product) {
   document.getElementById('detail-description').textContent = product.description || 'No description available.';
   document.getElementById('detail-price').textContent = `Rs.${product.price?.toFixed(2) || 'N/A'}`;
   document.getElementById('quantityInput').value = 1;
-   document.getElementById('stock').textContent=`stock : `+product.stock ||'no stock available';
+  document.getElementById('stock').textContent=`stock : `+product.stock ||'no stock available';
+  document.getElementById('stock').setAttribute("data-stock", product.stock || 0);
   document.getElementById('addToCartBtn').onclick = () => addToCart(product);
 
   productDetailContentDiv.classList.remove('hidden');
   categoryDiv.classList.add('hidden');
+}
+
+function changeQty(delta) {
+  const input = document.getElementById('quantityInput');
+  let qty = parseInt(input.value);
+  let stock = parseInt(document.getElementById('stock').getAttribute("data-stock")); // stock from attribute
+
+  qty = isNaN(qty) ? 1 : qty + delta;
+
+  // quantity should not exceed stock
+  if (qty > stock) {
+    qty = stock;
+  }
+
+  // quantity should not go below 1
+  if (qty < 1) {
+    qty = 1;
+  }
+
+  input.value = qty;
 }
 
 function hideProductDetail() {
@@ -589,14 +647,6 @@ function hideProductDetail() {
   productListSection.classList.remove('hidden');
   categoryDiv.classList.remove('hidden');
 }
-
-function changeQty(delta) {
-  const input = document.getElementById('quantityInput');
-  let qty = parseInt(input.value);
-  qty = isNaN(qty) ? 1 : qty + delta;
-  input.value = qty < 1 ? 1 : qty;
-}
-
 // Updated addToCart function to send all parameters
 async function addToCart(product) {
   const quantity = parseInt(document.getElementById('quantityInput').value);
@@ -808,7 +858,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("customDesignForm");
     const submitBtn = document.getElementById("submitBtn");
     const formMessage = document.getElementById("formMessage");
-    const deliveryDateInput = document.getElementById("deliveryDate"); // தேதி input-ஐப் பெறவும்
+    const deliveryDateInput = document.getElementById("deliveryDate"); 
 
     const showMessage = (msg, isSuccess) => {
         formMessage.textContent = msg;
@@ -840,11 +890,13 @@ document.addEventListener("DOMContentLoaded", () => {
         
         // நேரத்தை நீக்கி, தேதியை மட்டும் ஒப்பிடுவதற்காக
         today.setHours(0, 0, 0, 0); 
+        
+        // தேர்ந்தெடுக்கப்பட்ட தேதி இன்றைய தேதி அல்லது கடந்த தேதியாக இருந்தால்
         if (selectedDate <= today) {
             showMessage("❌ Please select a future date. Today or past dates are not allowed.", false);
-            return; 
+            return; // தவறான தேதி என்றால், இங்கேயே நிறுத்தவும்
         }
-
+        // --- தேதி சரிபார்ப்பு முடிவு ---
 
         submitBtn.disabled = true;
         submitBtn.innerText = "Submitting...";
@@ -1039,67 +1091,81 @@ document.getElementById('reviewOrderBtn').addEventListener('click', function() {
 
 // payment btn
 document.getElementById('proceedToPaymentBtn').addEventListener('click', async function() {
-    
     try {
         const userData = JSON.parse(localStorage.getItem('userData'));
         if (!userData || !userData.name) {
             throw new Error("User not logged in");
         }
 
-        // --- படி 1: கார்ட் பொருட்களைப் பெறுதல் ---
-        console.log("Fetching cart items...");
+        // --- Step 0: Payment Method select check ---
+        const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked');
+        if (!selectedMethod) {
+            alert("Please select a payment method!");
+            return;
+        }
+        finalOrderData.paymentMethod = selectedMethod.value; // "cod" or "online"
+
+        // --- Step 1: Fetch cart items ---
         const cartResponse = await fetch(`https://mainprojectapi.onrender.com/viewCart?userName=${userData.name}`);
-        if (!cartResponse.ok) {
-            throw new Error("Failed to fetch cart from API.");
-        }
+        if (!cartResponse.ok) throw new Error("Failed to fetch cart from API.");
         const cartItems = await cartResponse.json();
-        if (!cartItems || cartItems.length === 0) {
-            throw new Error("Cannot proceed with an empty cart.");
-        }
-        
-        // finalOrderData-வில் கார்ட் பொருட்களைச் சேர்க்கவும்
+        if (!cartItems || cartItems.length === 0) throw new Error("Cannot proceed with an empty cart.");
         finalOrderData.cartItems = cartItems;
 
-        // --- மிக முக்கியமான வரி இங்கே சேர்க்கப்பட்டுள்ளது ---
-        // success.html பக்கத்திற்குத் தேவைப்படும் ஆர்டர் விவரங்களை localStorage-இல் சேமிக்கவும்.
+        // Save order data locally (success page use)
         localStorage.setItem('finalOrderDataForFulfillment', JSON.stringify(finalOrderData));
-        console.log("Order data saved to localStorage for fulfillment.");
-        // ----------------------------------------------------
 
-        // --- படி 2: உங்கள் Cashfree Servlet-க்கு தரவை அனுப்பவும் ---
-        console.log("Final data being sent to Cashfree servlet:", JSON.stringify(finalOrderData, null, 2));
+        // --- Step 2: Payment Method Flow ---
+        if (finalOrderData.paymentMethod === "cod") {
+            // ✅ COD Flow - திருத்தப்பட்ட பகுதி
+            const codResponse = await fetch("https://mainprojectapi.onrender.com/placeOrder", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                // finalOrderData-வில் உள்ள அனைத்து விவரங்களையும் அனுப்புகிறோம்
+                body: JSON.stringify(finalOrderData) 
+            });
+            
+            const result = await codResponse.json();
 
-        const response = await fetch('https://mainprojectapi.onrender.com/create-cashfree-session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(finalOrderData)
-        });
-        
-        const sessionData = await response.json();
+            if (!codResponse.ok) {
+                 // Servlet-இடம் இருந்து வரும் பிழைச் செய்தியைக் காட்டவும்
+                throw new Error(result.message || "Failed to place COD order.");
+            }
+            
+            // ✅ Servlet அனுப்பிய redirectUrl-ஐப் பயன்படுத்தி success பக்கத்திற்குச் செல்லவும்
+            if (result.status === 'success' && result.redirectUrl) {
+                window.location.href = result.redirectUrl;
+            } else {
+                throw new Error('Order placed, but redirect failed.');
+            }
 
-        if (sessionData.error) { 
-            throw new Error(sessionData.error); 
+        } else {
+            // Online Payment (Cashfree) - இந்த பகுதியில் மாற்றம் இல்லை
+            const response = await fetch('https://mainprojectapi.onrender.com/create-cashfree-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(finalOrderData)
+            });
+
+            const sessionData = await response.json();
+            if (sessionData.error) throw new Error(sessionData.error);
+            const paymentSessionId = sessionData.payment_session_id;
+            if (!paymentSessionId) throw new Error("Failed to get payment_session_id from the server.");
+
+            const cashfree = new Cashfree({ mode: "sandbox" });
+            cashfree.checkout({
+                paymentSessionId: paymentSessionId,
+                redirectTarget: "_self"
+            });
         }
 
-        const paymentSessionId = sessionData.payment_session_id;
-        if (!paymentSessionId) {
-            throw new Error("Failed to get payment_session_id from the server.");
-        }
-
-        // --- படி 3: Cashfree Checkout-ஐத் தொடங்கவும் ---
-        const cashfree = new Cashfree({ mode: "sandbox" }); 
-        
-        console.log("Initializing Cashfree Checkout...");
-        cashfree.checkout({
-            paymentSessionId: paymentSessionId,
-            redirectTarget: "_self"
-        });
-
-    } catch(error) {
+    } catch (error) {
         console.error(error);
         alert(`Payment Error: ${error.message}`);
     }
 });
+
+
 // order page
 async function showMyOrdersPage() {
   hideAllContentSections();

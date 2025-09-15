@@ -137,15 +137,20 @@
 /* மொபைல் திரைகளுக்கு எழுத்தின் அளவைக் குறைத்தல் */
 @media (max-width: 768px) {
   .banner-headline {
-    font-size: 3rem; /* மொபைலுக்கு சற்று சிறிய அளவு (48px) */
+    font-size: 3rem; 
   }
 }
-
 @media (max-width: 480px) {
     .banner-headline {
-      font-size: 2.5rem; /* மிகவும் சிறிய மொபைலுக்கு (40px) */
+      font-size: 2.5rem; 
     }
 }
+.nav-link.active {
+  font-weight: bold;
+  color: #d97706; /* Tailwind yellow-700 */
+  border-bottom: 2px solid #d97706; /* optional underline */
+}
+
   </style>
 </head>
 <body class="bg-gray-200 text-gray-800 font-sans ">
@@ -514,40 +519,68 @@
     <h1 class="text-4xl font-bold text-yellow-700 text-center mb-8">Checkout</h1>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
       
-      <div class="bg-white p-8 rounded-2xl shadow-lg">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-4">Shipping Details</h2>
-        <form id="checkoutForm" class="space-y-5">
-          <div>
-            <label for="checkoutCustomerName" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-            <input type="text" id="checkoutCustomerName" name="customerName" required placeholder="Enter your full name" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
-          </div>
-          <div>
-            <label for="checkoutAddress" class="block text-sm font-medium text-gray-700 mb-1">Address</label>
-            <input type="text" id="checkoutAddress" name="address" required placeholder="House No, Street, Landmark" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
-          </div>
-          <div>
-            <label for="checkoutCity" class="block text-sm font-medium text-gray-700 mb-1">City</label>
-            <input type="text" id="checkoutCity" name="city" required placeholder="Your city" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
-          </div>
-          <div class="grid grid-cols-2 gap-4">
+      <!-- Shipping + Payment Details -->
+      <div class="space-y-8">
+        
+        <!-- Shipping Details -->
+        <div class="bg-white p-8 rounded-2xl shadow-lg">
+          <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-4">Shipping Details</h2>
+          <form id="checkoutForm" class="space-y-5">
             <div>
-              <label for="checkoutPincode" class="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
-              <input type="text" id="checkoutPincode" name="pincode" required placeholder="e.g., 600001" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
+              <label for="checkoutCustomerName" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+              <input type="text" id="checkoutCustomerName" name="customerName" required placeholder="Enter your full name" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
             </div>
             <div>
-              <label for="checkoutMobile" class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
-              <input type="tel" id="checkoutMobile" name="mobileNumber" required placeholder="10-digit number" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
+              <label for="checkoutAddress" class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+              <input type="text" id="checkoutAddress" name="address" required placeholder="House No, Street, Landmark" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
             </div>
-          </div>
-          <div class="pt-4">
-        <button type="submit" id="reviewOrderBtn" class="w-full bg-yellow-600 text-white py-3 rounded-full font-semibold hover:bg-yellow-700 transition text-lg">
-            Review Your Order
-        </button>
-        <p id="checkout-error-message" class="text-red-600 text-center mt-3"></p>
-    </div>
-        </form>
+            <div>
+              <label for="checkoutCity" class="block text-sm font-medium text-gray-700 mb-1">City</label>
+              <input type="text" id="checkoutCity" name="city" required placeholder="Your city" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="checkoutPincode" class="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
+                <input type="text" id="checkoutPincode" name="pincode" required placeholder="e.g., 600001" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
+              </div>
+              <div>
+                <label for="checkoutMobile" class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+                <input type="tel" id="checkoutMobile" name="mobileNumber" required placeholder="10-digit number" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Payment Method -->
+        <!-- Payment Method -->
+<div class="bg-white p-8 rounded-2xl shadow-lg">
+  <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-4">Payment Method</h2>
+  <div class="space-y-4">
+    <!-- COD -->
+    <label class="flex items-center space-x-3 cursor-pointer">
+      <input type="radio" name="paymentMethod" value="cod" class="h-5 w-5 text-yellow-600 focus:ring-yellow-600" checked>
+      <span class="text-gray-700 font-medium">Cash on Delivery</span>
+    </label>
+    
+    <!-- Online -->
+    <label class="flex items-center space-x-3 cursor-pointer">
+      <input type="radio" name="paymentMethod" value="online" class="h-5 w-5 text-yellow-600 focus:ring-yellow-600">
+      <span class="text-gray-700 font-medium">Online Payment (UPI / Wallet / Card)</span>
+    </label>
+  </div>
+
+  <div class="pt-6">
+    <button type="submit" form="checkoutForm" id="reviewOrderBtn" 
+      class="w-full bg-yellow-600 text-white py-3 rounded-full font-semibold hover:bg-yellow-700 transition text-lg">
+      Review Your Order
+    </button>
+    <p id="checkout-error-message" class="text-red-600 text-center mt-3"></p>
+  </div>
+</div>
+
       </div>
 
+      <!-- Order Summary -->
       <div class="bg-white p-8 rounded-2xl shadow-lg">
         <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-4">Order Summary</h2>
         <div id="checkoutOrderSummary" class="space-y-3 mb-6">
@@ -574,6 +607,7 @@
     </div>
   </div>
 </section>
+
 <section id="confirmation-section" class="hidden py-10 md:py-16 bg-gray-50 min-h-screen mt-16 md:mt-20">
   <div class="max-w-3xl mx-auto p-4 sm:p-6 lg:p-8 bg-white shadow-lg rounded-lg">
     <h1 class="text-4xl font-bold text-yellow-700 text-center mb-8">Confirm Your Order</h1>
@@ -590,18 +624,23 @@
       </div>
       
       <div class="bg-gray-100 p-6 rounded-lg">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Order Summary:</h2>
-        <div class="space-y-2">
-          <div class="flex justify-between">
-            <span>Subtotal</span>
-            <span id="confirm-subtotal">₹0.00</span>
-          </div>
-          <div class="flex justify-between font-bold text-xl pt-2">
-            <span>Total</span>
-            <span id="confirm-total">₹0.00</span>
-          </div>
-        </div>
-      </div>
+  <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Order Summary:</h2>
+  <div class="space-y-2">
+    <div class="flex justify-between">
+      <span>Subtotal</span>
+      <span id="confirm-subtotal">₹0.00</span>
+    </div>
+    <div class="flex justify-between">
+      <span>Payment Method</span>
+      <span id="confirm-payment">-</span>
+    </div>
+    <div class="flex justify-between font-bold text-xl pt-2">
+      <span>Total</span>
+      <span id="confirm-total">₹0.00</span>
+    </div>
+  </div>
+</div>
+
     </div>
 
     <div class="mt-8 text-center">
@@ -751,7 +790,7 @@
                 </button>
 
                 <p class="text-xs text-gray-400 text-center mt-2">We reply within 24 hours. For urgent requests call
-                    <a href="tel:+91" class="text-yellow-300 underline hover:no-underline transition">
+                    <a href="tel:+91 6383477029" class="text-yellow-300 underline hover:no-underline transition">
                         +91 6383477029
                     </a>
                 </p>
@@ -769,10 +808,12 @@
                 <h3 class="text-3xl font-bold text-yellow-400 font-serif text-center">Visit Us</h3>
 
                 <div class="aspect-video overflow-hidden rounded-xl shadow-md mt-4">
-                    <iframe
+                    <!-- <iframe
                         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3928.3241517409255!2d77.80210217503792!3d9.995079172288005!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b069d300b957643%3A0x6731e0a2958348a4!2sSivakasi%2C%20Tamil%20Nadu!5e0!3m2!1sen!2sin!4v1694200000000!5m2!1sen!2sin"
                         class="w-full h-full border-0" allowfullscreen loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade"></iframe>
+                        referrerpolicy="no-referrer-when-downgrade"></iframe>  -->
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d1967.8274830768796!2d77.79535660294675!3d9.451622837702368!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b06cee36aed3263%3A0xf1fe5a34f3371611!2s34%2C%20Police%20Station%20Rd%2C%20Parasakthi%20Colony%2C%20Sivakasi%2C%20Tamil%20Nadu%20626123!5e0!3m2!1sen!2sin!4v1757637419019!5m2!1sen!2sin" width="600" height="450" style="border:0;" 
+                        allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"  class="w-full h-full border-0" allowfullscreen loading="lazy"></iframe>
                 </div>
 
                 <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-yellow-100 text-base font-medium">
@@ -780,7 +821,7 @@
                     <p class="flex items-center gap-2"><i class="fas fa-phone-alt text-yellow-400"></i><a href="tel:+916383477029"
                                 class="hover:underline">+91 6383477029</a></p>
                     <p class="flex items-center gap-2"><i class="fas fa-envelope text-yellow-400"></i><a href="mailto:support@aurlineaurum.in"
-                                class="hover:underline">support@aurlineaurum.in</a></p>
+                                class="hover:underline">lustrecovering@gmail.com</a></p>
                     <p class="flex items-center gap-2"><i class="fas fa-clock text-yellow-400"></i>Mon - Sat: 10 AM - 8 PM</p>
                 </div>
 
@@ -799,13 +840,13 @@
                     <img src="https://cdn-icons-png.flaticon.com/512/9131/9131529.png" alt="owner"
                          class="w-16 h-16 rounded-full object-cover border-2 border-yellow-400 shadow-md">
                     <div>
-                        <p class="text-lg text-yellow-300 font-semibold">G.Mageswari</p>
+                        <p class="text-lg text-yellow-300 font-semibold">G.Maheswari</p>
                         <p class="text-sm text-gray-300">Custom designs & lifetime polishing</p>
                     </div>
                 </div>
                 <div class="mt-4 grid grid-cols-3 gap-2 text-xs text-gray-400 font-semibold">
                     <div class="text-center bg-gray-700 p-2 rounded-lg"><i class="fas fa-certificate text-yellow-400 mr-1"></i> Verified Seller</div>
-                    <div class="text-center bg-gray-700 p-2 rounded-lg"><i class="fas fa-calendar-alt text-yellow-400 mr-1"></i> 30+ Years</div>
+                    <div class="text-center bg-gray-700 p-2 rounded-lg"><i class="fas fa-calendar-alt text-yellow-400 mr-1"></i> 20+ Years</div>
                     <div class="text-center bg-gray-700 p-2 rounded-lg"><i class="fas fa-shipping-fast text-yellow-400 mr-1"></i> Fast Turnaround</div>
                 </div>
             </div>

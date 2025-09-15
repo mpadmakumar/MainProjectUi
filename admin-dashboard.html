@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
 
-    <!-- Styles -->
     <link rel="stylesheet" href="./admin.css">
     
   <script src="https://cdn.tailwindcss.com"></script>
@@ -14,7 +13,6 @@
 </head>
 <body>
 
-    <!-- Sidebar -->
     <aside class="admin-sidebar" id="adminSidebar">
         <div class="logo">
             <a href="#" data-section="dashboard-section">
@@ -29,7 +27,7 @@
                 <li><a href="#" data-section="orders-section"><i class="fas fa-clipboard-list"></i> Manage Orders</a></li>
                 <li><a href="#" data-section="users-section"><i class="fas fa-users"></i> View Users</a></li>
                 <li><a href="#" data-section="requests-section"><i class="fas fa-file-signature"></i> Custom Requests</a></li>
-                 <li class="mobile-only-logout"><a href="#" id="mobileAdminLogoutLink"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                <li><a href="#" data-section="payments-section"><i class="fas fa-credit-card"></i> Payment Details</a></li>
             </ul>
         </nav>
         <div class="sidebar-footer">
@@ -37,7 +35,6 @@
         </div>
     </aside>
 
-    <!-- Main Content -->
     <main class="admin-main-content">
         <header class="admin-header">
             <h1 id="main-header-title">Dashboard Overview</h1>
@@ -72,15 +69,14 @@
                             <option value="Anklets (Kolusu)"> Anklets (Kolusu)</option>
                         </select>
                     </div>
-                    <!-- <div class="form-group"><label for="productImageUrl">Image URL:</label><input type="url" id="productImageUrl" required></div> -->
                     <div class="form-group">
-                    <label for="productImageUrl">Image URL:</label>
-                   <div style="display: flex; gap: 10px; align-items: center;">
-                         <input type="url" id="productImageUrl" required style="flex:1;">
+                      <label for="productImageUrl">Image URL:</label>
+                     <div style="display: flex; gap: 10px; align-items: center;">
+                           <input type="url" id="productImageUrl" required style="flex:1;">
                             <button type="button" id="openUploaderBtn" class="btn btn-primary">
-                         <i class="fas fa-cloud-upload-alt"></i> Upload
-                           </button>
-                         </div>
+                          <i class="fas fa-cloud-upload-alt"></i> Upload
+                            </button>
+                          </div>
                     </div>
 
                     <div class="action-buttons">
@@ -140,14 +136,23 @@
                <p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Loading requests...</p>
             </div>
             <div id="tableMessageRequests" class="message-container"></div>
-         </div>
+           </div>
+       </section>
+        
+        <section id="payments-section" class="content-section">
+            <div class="data-section">
+                <h2>Payment Transactions</h2>
+                <div id="paymentsTableContainer" class="table-container">
+                    <p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Loading payment details...</p>
+                </div>
+                <div id="tableMessagePayments" class="message-container"></div>
+            </div>
        </section>
 
         <div class="loading-overlay" id="loadingOverlay">
             <div class="spinner"></div>
         </div>
-        <!-- Cloudinary Uploader Modal -->
-<div id="uploaderModal" class="modal-overlay" style="display:none;">
+        <div id="uploaderModal" class="modal-overlay" style="display:none;">
   <div class="modal-content">
     <span class="modal-close" id="closeUploaderModal">&times;</span>
     <h2>Upload Image to Cloudinary</h2>
@@ -163,10 +168,8 @@
 
     </main>
 
-    <!-- JS Files -->
     <script src="./admin.js"></script>
 
-    <!-- ✅ Logout Logic -->
     <script>
       document.getElementById("adminLogoutLink").addEventListener("click", function (e) {
         e.preventDefault();

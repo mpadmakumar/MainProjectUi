@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const headerTitle = document.getElementById('main-header-title');
     const loadingOverlay = document.getElementById('loadingOverlay');
     const logoutLink = document.getElementById('adminLogoutLink');
-    const mobileLogoutLink = document.getElementById('mobileAdminLogoutLink'); // For responsive view
 
     // --- API Endpoints ---
     const API_BASE_URL = 'https://mainprojectapi.onrender.com';
@@ -21,7 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const ORDERS_URL = `${API_BASE_URL}/admin/viewOrders`;
     const ORDER_DETAILS_URL = (id) => `${API_BASE_URL}/admin/viewOrderDetails?orderId=${id}`;
     const ORDER_UPDATE_STATUS_URL = `${API_BASE_URL}/admin/updateOrderStatus`;
-    const REQUESTS_URL = `${API_BASE_URL}/admin/customRequests`; // Correct requests URL
+    // ✅ NEW: API Endpoint for Payments (உங்கள் சரியான URL-ஐ இங்கே மாற்றவும்)
+    const PAYMENTS_URL = `${API_BASE_URL}/admin/payments`;
 
     // --- Common UI Functions ---
     const showLoading = (show) => { loadingOverlay.style.display = show ? 'flex' : 'none'; };
@@ -55,7 +55,9 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'products-section': fetchProducts(); break;
             case 'orders-section': fetchOrders(); break;
             case 'users-section': fetchUsers(); break;
-            case 'requests-section': fetchRequests(); break; // ✅ Custom Requests section added
+            case 'requests-section': fetchRequests(); break;
+            // ✅ NEW: Call fetchPayments when the payments section is shown
+            case 'payments-section': fetchPayments(); break;
         }
     };
 
@@ -69,22 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Sidebar and Logout ---
     sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('active'));
-
-    // ✅ Correct Logout Function
-    function handleAdminLogout(e) {
+    logoutLink.addEventListener('click', (e) => {
         e.preventDefault();
-        localStorage.removeItem("adminToken");
-        sessionStorage.clear();
         alert('You have been logged out.');
-        window.location.href = "login.html";
-    }
-
-    if (logoutLink) {
-        logoutLink.addEventListener('click', handleAdminLogout);
-    }
-    if (mobileLogoutLink) {
-        mobileLogoutLink.addEventListener('click', handleAdminLogout);
-    }
+    });
 
     // --- Dashboard Logic ---
     async function fetchDashboardStats() {
@@ -145,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('ordersTableContainer');
         showLoading(true);
         container.innerHTML = `<p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Loading orders...</p>`;
+
         try {
             const response = await fetch(ORDERS_URL);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -153,27 +144,48 @@ document.addEventListener('DOMContentLoaded', () => {
                 container.innerHTML = '<p>No orders found.</p>';
                 return;
             }
+
             let tableHtml = `<table class="data-table">
-                <thead><tr><th>Order ID</th><th>Date</th><th>Customer Name</th><th>User Name</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="admin-orders-table-body">`;
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Date</th>
+                                        <th>Customer Name</th>
+                                        <th>User Name</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-orders-table-body">`;
+
             orders.forEach(order => {
                 const status = order.status;
-                const statusDropdown = `<select onchange="updateOrderStatus(this, ${order.orderId})" data-original-status="${status}" class="status-select status-${status.toLowerCase()}">
-                    <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>Pending</option>
-                    <option value="Shipped" ${status === 'Shipped' ? 'selected' : ''}>Shipped</option>
-                    <option value="Delivered" ${status === 'Delivered' ? 'selected' : ''}>Delivered</option>
-                    <option value="Cancelled" ${status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
-                </select>`;
-                tableHtml += `<tr>
-                    <td class="font-bold">#${order.orderId}</td>
-                    <td>${order.orderDate}</td>
-                    <td>${order.customerName}</td>
-                    <td>${order.userName}</td>
-                    <td class="font-semibold">Rs.${(order.totalAmount || 0).toFixed(2)}</td>
-                    <td>${statusDropdown}</td>
-                    <td><button onclick="viewOrderDetails(${order.orderId})" class="btn btn-primary"><i class="fas fa-eye"></i> View</button></td>
-                </tr>`;
+                const statusDropdown = `
+                    <select onchange="updateOrderStatus(this, ${order.orderId})" data-original-status="${status}" class="status-select status-${status.toLowerCase()}">
+                        <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>Pending</option>
+                        <option value="Shipped" ${status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                        <option value="Delivered" ${status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                        <option value="Cancelled" ${status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                    </select>
+                `;
+
+                tableHtml += `
+                    <tr>
+                        <td class="font-bold">#${order.orderId}</td>
+                        <td>${order.orderDate}</td>
+                        <td>${order.customerName}</td>
+                        <td>${order.userName}</td>
+                        <td class="font-semibold">Rs.${(order.totalAmount || 0).toFixed(2)}</td>
+                        <td>${statusDropdown}</td>
+                        <td>
+                            <button onclick="viewOrderDetails(${order.orderId})" class="btn btn-primary">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                        </td>
+                    </tr>`;
             });
+
             tableHtml += `</tbody></table>`;
             container.innerHTML = tableHtml;
         } catch (error) {
@@ -183,35 +195,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- Order Details Modal and Status Update ---
     window.viewOrderDetails = async (orderId) => {
         const modal = document.getElementById('orderDetailsModal');
         const modalContent = document.getElementById('modal-content');
         modal.classList.remove('hidden');
-        modalContent.innerHTML = `<p class="text-center p-8 text-gray-500"><i class="fas fa-spinner fa-spin"></i> Loading details...</p>`;
+        modalContent.innerHTML = '<p class="text-center p-8 text-gray-500"><i class="fas fa-spinner fa-spin"></i> Loading details...</p>';
+
         try {
             const response = await fetch(ORDER_DETAILS_URL(orderId));
             const details = await response.json();
+
             let itemsHtml = '<h4 class="text-lg font-semibold mt-6 mb-3 text-gray-800">Products in this Order:</h4><div class="space-y-4">';
             details.items.forEach(item => {
-                itemsHtml += `<div class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <img src="${item.imageUrl}" alt="${item.productName}" class="w-20 h-20 object-cover rounded-md">
-                    <div><p class="font-semibold text-gray-900">${item.productName}</p><p class="text-sm text-gray-600">Quantity: ${item.quantity}</p></div>
-                </div>`;
+                itemsHtml += `
+                    <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <img src="${item.imageUrl}" alt="${item.productName}" class="w-20 h-20 object-cover rounded-md">
+                        <div>
+                            <p class="font-semibold text-gray-900">${item.productName}</p>
+                            <p class="text-sm text-gray-600">Quantity: ${item.quantity}</p>
+                        </div>
+                    </div>`;
             });
             itemsHtml += '</div>';
-            modalContent.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-sm">
-                <div><strong class="block text-gray-500 font-medium">Order ID:</strong><p class="text-gray-900 font-semibold">#${details.orderIdText}</p></div>
-                <div><strong class="block text-gray-500 font-medium">Order Date:</strong><p class="text-gray-900">${details.orderDate}</p></div>
-                <div><strong class="block text-gray-500 font-medium">Customer:</strong><p class="text-gray-900">${details.customerName}</p></div>
-                <div><strong class="block text-gray-500 font-medium">Status:</strong><span class="px-2 py-1 font-semibold rounded-full bg-yellow-100 text-yellow-800">${details.status}</span></div>
-            </div>
-            <div class="mt-5 pt-5 border-t border-gray-200">
-                <strong class="block text-gray-500 text-sm font-medium">Shipping Address:</strong>
-                <p class="text-gray-800 mt-1">${details.address}, ${details.city}, ${details.pincode}</p>
-                <p class="text-gray-800">Mobile: ${details.mobileNumber}</p>
-            </div>
-            ${itemsHtml}`;
+
+            modalContent.innerHTML = `
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-sm">
+                    <div><strong class="block text-gray-500 font-medium">Order ID:</strong><p class="text-gray-900 font-semibold">#${details.orderIdText}</p></div>
+                    <div><strong class="block text-gray-500 font-medium">Order Date:</strong><p class="text-gray-900">${details.orderDate}</p></div>
+                    <div><strong class="block text-gray-500 font-medium">Customer:</strong><p class="text-gray-900">${details.customerName}</p></div>
+                    <div><strong class="block text-gray-500 font-medium">Status:</strong><span class="px-2 py-1 font-semibold rounded-full bg-yellow-100 text-yellow-800">${details.status}</span></div>
+                </div>
+                <div class="mt-5 pt-5 border-t border-gray-200">
+                    <strong class="block text-gray-500 text-sm font-medium">Shipping Address:</strong>
+                    <p class="text-gray-800 mt-1">${details.address}, ${details.city}, ${details.pincode}</p>
+                    <p class="text-gray-800">Mobile: ${details.mobileNumber}</p>
+                </div>
+                ${itemsHtml}`;
         } catch (error) {
+            console.error("Failed to fetch order details:", error);
             modalContent.innerHTML = `<p class="text-center p-8 text-red-500">Failed to load order details.</p>`;
         }
     };
@@ -219,11 +241,14 @@ document.addEventListener('DOMContentLoaded', () => {
     window.updateOrderStatus = async (selectElement, orderId) => {
         const newStatus = selectElement.value;
         const originalStatus = selectElement.dataset.originalStatus;
-        if (!confirm(`Are you sure you want to change status for order #${orderId} to "${newStatus}"?`)) {
+
+        if (!confirm(`Are you sure you want to change the status for order #${orderId} to "${newStatus}"?`)) {
             selectElement.value = originalStatus;
             return;
         }
+
         showLoading(true);
+
         try {
             const response = await fetch(ORDER_UPDATE_STATUS_URL, {
                 method: 'POST',
@@ -234,10 +259,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result.status === 'success') {
                 alert(result.message);
                 selectElement.dataset.originalStatus = newStatus;
+                selectElement.className = `status-select status-${newStatus.toLowerCase()}`;
             } else {
                 throw new Error(result.message);
             }
         } catch (error) {
+            console.error("Failed to update status:", error);
             alert(`Error: ${error.message}`);
             selectElement.value = originalStatus;
         } finally {
@@ -251,15 +278,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const searchInput = document.getElementById('orderSearchInput');
     if (searchInput) {
-        searchInput.addEventListener('input', function () {
+        searchInput.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
             const tableBody = document.getElementById('admin-orders-table-body');
             if (!tableBody) return;
             const rows = tableBody.getElementsByTagName('tr');
+
             for (const row of rows) {
-                const customerName = row.cells[2].textContent.toLowerCase();
-                const userName = row.cells[3].textContent.toLowerCase();
-                row.style.display = (customerName.includes(searchTerm) || userName.includes(searchTerm)) ? "" : "none";
+                const customerNameCell = row.cells[2];
+                const userNameCell = row.cells[3];
+                if (customerNameCell && userNameCell) {
+                    const customerName = customerNameCell.textContent.toLowerCase();
+                    const userName = userNameCell.textContent.toLowerCase();
+                    if (customerName.includes(searchTerm) || userName.includes(searchTerm)) {
+                        row.style.display = "";
+                    } else {
+                        row.style.display = "none";
+                    }
+                }
             }
         });
     }
@@ -271,6 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelEditBtn = document.getElementById('cancelEditBtn');
     const formMessage = document.getElementById('formMessage');
     const productsTableContainer = document.getElementById('productsTableContainer');
+    const tableMessageProducts = document.getElementById('tableMessageProducts');
     let editingProductId = null;
 
     function resetForm() {
@@ -314,9 +351,9 @@ document.addEventListener('DOMContentLoaded', () => {
             let tableHtml = `<table class="data-table product-table"><thead><tr><th>Id</th><th>Image</th><th>Name</th><th>Price</th><th>Stock</th><th>Category</th><th>Actions</th></tr></thead><tbody>`;
             products.forEach(p => {
                 tableHtml += `<tr data-id="${p.id}" data-name="${p.name}" data-description="${p.description || ''}" data-price="${p.price}" data-stock="${p.stock}" data-category="${p.category || ''}" data-imageurl="${p.imageUrl || ''}">
-                    <td>${p.id}</td><td><img src="${p.imageUrl || ''}" alt="${p.name}"></td><td>${p.name}</td><td>Rs.${(p.price || 0).toFixed(2)}</td>
-                    <td>${p.stock}</td><td>${p.category || 'N/A'}</td>
-                    <td class="actions"><button class="btn btn-primary edit-btn"><i class="fas fa-edit"></i> Edit</button><button class="btn btn-danger delete-btn"><i class="fas fa-trash-alt"></i> Delete</button></td></tr>`;
+                            <td>${p.id}</td><td><img src="${p.imageUrl || ''}" alt="${p.name}"></td><td>${p.name}</td><td>Rs.${(p.price || 0).toFixed(2)}</td>
+                            <td>${p.stock}</td><td>${p.category || 'N/A'}</td>
+                            <td class="actions"><button class="btn btn-primary edit-btn"><i class="fas fa-edit"></i> Edit</button><button class="btn btn-danger delete-btn"><i class="fas fa-trash-alt"></i> Delete</button></td></tr>`;
             });
             productsTableContainer.innerHTML = tableHtml + `</tbody></table>`;
         } catch (error) {
@@ -341,73 +378,214 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const response = await fetch(PRODUCT_DELETE_URL(id), { method: 'DELETE' });
                 if (!response.ok) throw new Error(await response.text());
-                showMessage(document.getElementById('tableMessageProducts'), 'Product deleted successfully!', 'success'); fetchProducts();
+                showMessage(tableMessageProducts, 'Product deleted successfully!', 'success'); fetchProducts();
             } catch (error) {
-                showMessage(document.getElementById('tableMessageProducts'), `Error: ${error.message}`, 'error');
+                showMessage(tableMessageProducts, `Error: ${error.message}`, 'error');
             } finally { showLoading(false); }
         }
     });
+    
+    // --- ✅✅✅ NEW: Function to fetch and display payment details ✅✅✅ ---
+// ✅ மேம்படுத்தப்பட்ட fetchPayments செயல்பாடு
+async function fetchPayments() {
+    const container = document.getElementById('paymentsTableContainer');
+    showLoading(true);
+    container.innerHTML = `<p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Loading payment details...</p>`;
 
-    // --- Custom Requests Logic (Integrated) ---
+    try {
+        const response = await fetch(PAYMENTS_URL);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
+        const payments = await response.json();
+
+        if (!payments || payments.length === 0) {
+            container.innerHTML = '<p class="empty-message">No payment records found.</p>';
+            return;
+        }
+        // <th>Payment ID</th>
+        // <td>${payment.payment_id}</td>
+        let tableHtml = `<table class="data-table">
+                            <thead>
+                                <tr>
+                                   
+                                    <th>Order ID</th>
+                                    <th>Customer Name</th>
+                                    <th>Payment Method</th>
+                                    <th>Amount</th>
+                                    <th>Payment Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+        
+        payments.forEach(payment => {
+            const currentStatus = payment.payment_status || 'N/A';
+            
+            // ✅ முக்கிய மாற்றம்: பேமெண்ட் ஸ்டேட்டஸை ஒரு dropdown ஆக மாற்றுகிறோம்
+            const paymentStatusDropdown = `
+                <select onchange="updatePaymentStatus(this, ${payment.payment_id})" class="status-select status-${currentStatus.toLowerCase()}">
+                    <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
+                    <option value="Paid" ${currentStatus === 'Paid' ? 'selected' : ''}>Paid</option>
+                    <option value="Failed" ${currentStatus === 'Failed' ? 'selected' : ''}>Failed</option>
+                    <option value="Refunded" ${currentStatus === 'Refunded' ? 'selected' : ''}>Refunded</option>
+                </select>
+            `;
+
+            let actionButtons = `<button onclick="viewOrderDetails(${payment.payment_id})" class="btn btn-secondary btn-sm" title="View Order Details"><i class="fas fa-eye"></i></button>`;
+
+            tableHtml += `
+                <tr>
+                    
+                    <td>${payment.order_id}</td>
+                    <td>${payment.customer_name || 'N/A'}</td>
+                    <td>${payment.payment_method}</td>
+                    <td class="font-semibold">Rs.${(payment.amount || 0).toFixed(2)}</td>
+                    <td>${paymentStatusDropdown}</td>
+                    <td>${payment.payment_date}</td>
+                    <td class="actions">${actionButtons}</td>
+                </tr>`;
+        });
+
+        tableHtml += `</tbody></table>`;
+        container.innerHTML = tableHtml;
+
+    } catch (error) {
+        console.error("Failed to fetch payments:", error);
+        container.innerHTML = `<p class="error-message"><i class="fas fa-exclamation-circle"></i> Failed to load payment details.</p>`;
+    } finally {
+        showLoading(false);
+    }
+}
+
+// ✅ dropdown-ஐ மாற்றும்போது அழைக்கப்படும் புதிய செயல்பாடு
+// window object-ல் இதை சேர்ப்பதால், HTML-லிருந்து நேரடியாக அழைக்க முடியும்
+window.updatePaymentStatus = async function(selectElement, paymentId) {
+    const newStatus = selectElement.value;
+    
+    // மாற்றத்தை உறுதிப்படுத்த ஒரு பாப்-அப்
+    if (!confirm(`Are you sure you want to change the payment status for Payment ID #${paymentId} to "${newStatus}"?`)) {
+        fetchPayments(); // பயனர் 'Cancel' அழுத்தினால், பழைய நிலைக்குத் திரும்ப டேபிளைப் புதுப்பிக்கவும்
+        return;
+    }
+
+    showLoading(true);
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/updatePaymentStatus`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                paymentId: paymentId,
+                newStatus: newStatus
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            alert(result.message);
+            fetchPayments(); // வெற்றிகரமாக மாறிய பிறகு டேபிளைப் புதுப்பிக்கவும்
+        } else {
+            throw new Error(result.message);
+        }
+    } catch (error) {
+        console.error("Failed to update payment status:", error);
+        alert(`Error: ${error.message}`);
+        fetchPayments(); // பிழை ஏற்பட்டாலும் பழைய நிலைக்குத் திரும்பவும்
+    } finally {
+        showLoading(false);
+    }
+}
+
+
+
+
+    // --- Custom Requests Logic ---
     async function fetchRequests() {
         const tableContainer = document.getElementById("requestsTableContainer");
         const messageContainer = document.getElementById("tableMessageRequests");
         showLoading(true);
-        tableContainer.innerHTML = `<p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Loading requests...</p>`;
         try {
-            const res = await fetch(REQUESTS_URL);
+            const res = await fetch(`${API_BASE_URL}/admin/customRequests`);
             if (!res.ok) throw new Error("Failed to fetch requests");
+
             const data = await res.json();
+            tableContainer.innerHTML = ""; // Clear loading message
+
             if (!data || data.length === 0) {
                 tableContainer.innerHTML = `<p class="empty-message">No custom design requests found.</p>`;
                 return;
             }
             const table = document.createElement("table");
-            table.className = "styled-table";
-            table.innerHTML = `<thead>
-                <tr><th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>Jewelry Type</th><th>Metal Type</th><th>Description</th><th>Image</th><th>Budget</th><th>Delivery Date</th><th>Action</th></tr>
-            </thead><tbody>
-                ${data.map((req, i) => `
+            table.className = "data-table"; // Use consistent table class
+            table.innerHTML = `
+                <thead>
                     <tr>
-                        <td>${i + 1}</td>
-                        <td>${req.name}</td>
-                        <td>${req.email}</td>
-                        <td>${req.phone || "-"}</td>
-                        <td>${req.jewelryType || "-"}</td>
-                        <td>${req.metalType || "-"}</td>
-                        <td>${req.description || "-"}</td>
-                        <td>${req.image_path ? `<img src="${req.image_path}" alt="Request Image" style="width:80px;height:auto;border-radius:4px;">` : "-"}</td>
-                        <td>${req.budget || "-"}</td>
-                        <td>${req.deliveryDate || "-"}</td>
-                        <td><button class="delete-btn" onclick="deleteRequest(${req.id})">Delete</button></td>
-                    </tr>`).join("")}
-            </tbody>`;
-            tableContainer.innerHTML = '';
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Jewelry Type</th>
+                        <th>Description</th>
+                        <th>Image</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.map((req, i) => `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td>${req.name}</td>
+                            <td>${req.email}</td>
+                            <td>${req.phone || "-"}</td>
+                            <td>${req.jewelryType || "-"}</td>
+                            <td class="description-cell">${req.description || "-"}</td>
+                            <td>
+                                ${req.image_path
+                                    ? `<a href="${req.image_path}" target="_blank" rel="noopener noreferrer"><img src="${req.image_path}" alt="Request Image" style="width:80px;height:auto;border-radius:4px;"></a>`
+                                    : "-"}
+                            </td>
+                            <td>
+                                <button class="btn btn-danger delete-request-btn" data-id="${req.id}">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </button>
+                            </td>
+                        </tr>
+                    `).join("")}
+                </tbody>`;
             tableContainer.appendChild(table);
         } catch (err) {
-            tableContainer.innerHTML = `<p class="error-message">Error loading requests. Please try again.</p>`;
+            console.error(err);
+            messageContainer.innerHTML = `<p class="error-message">Error loading requests. Please try again.</p>`;
         } finally {
             showLoading(false);
         }
     }
 
-    window.deleteRequest = async function (id) {
-        const messageContainer = document.getElementById("tableMessageRequests");
-        if (!confirm("Are you sure you want to delete this request?")) return;
-        try {
-            const res = await fetch(`${REQUESTS_URL}?id=${id}`, { method: "DELETE" });
-            if (res.ok) {
-                showMessage(messageContainer, "Request deleted successfully.", "success");
-                fetchRequests();
-            } else {
-                throw new Error("Failed to delete request");
+    document.getElementById('requestsTableContainer').addEventListener('click', async (e) => {
+        if (e.target.closest('.delete-request-btn')) {
+            const id = e.target.closest('.delete-request-btn').dataset.id;
+            if (!confirm("Are you sure you want to delete this request?")) return;
+            showLoading(true);
+            try {
+                const res = await fetch(`${API_BASE_URL}/admin/customRequests?id=${id}`, { method: "DELETE" });
+                if (res.ok) {
+                    showMessage(document.getElementById('tableMessageRequests'), 'Request deleted successfully.', 'success');
+                    fetchRequests();
+                } else {
+                    throw new Error('Failed to delete request.');
+                }
+            } catch (err) {
+                console.error(err);
+                showMessage(document.getElementById('tableMessageRequests'), 'Error deleting request.', 'error');
+            } finally {
+                showLoading(false);
             }
-        } catch (err) {
-            showMessage(messageContainer, "Error deleting request.", "error");
         }
-    };
+    });
 
-    // --- Modal and Cloudinary Logic ---
+    // --- Cloudinary Modal & Upload Logic ---
     const openUploaderBtn = document.getElementById('openUploaderBtn');
     const uploaderModal = document.getElementById('uploaderModal');
     const closeUploaderModal = document.getElementById('closeUploaderModal');
@@ -443,11 +621,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData();
             formData.append('file', file);
             formData.append('upload_preset', UPLOAD_PRESET);
-
             statusElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
             urlElement.style.display = 'none';
             imagePreview.style.display = 'none';
-
             fetch(url, { method: 'POST', body: formData })
                 .then(response => response.json())
                 .then(data => {
@@ -459,9 +635,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         imagePreview.src = imageUrl;
                         imagePreview.style.display = 'block';
                         productImageUrlInput.value = imageUrl;
-                    } else { throw new Error('Upload failed. No secure URL returned.'); }
+                    } else { throw new Error('Upload failed.'); }
                 })
                 .catch(error => {
+                    console.error('Error uploading the file:', error);
                     statusElement.innerHTML = '<i class="fas fa-times-circle" style="color:red;"></i> Upload Failed. Please try again.';
                 });
         }
