@@ -400,7 +400,7 @@ function updateUIForLogin(userData) {
     </div>
     <a href="#" onclick="showUserProfile()"  class="block py-3 px-6 text-gray-700 hover:bg-yellow-50 flex items-center"><i class="fas fa-user mr-3"></i>My Profile</a>
     <a href="#" onclick="showCartPage()" class="block py-3 px-6 text-gray-700 hover:bg-yellow-50 flex items-center"><i class="fas fa-shopping-cart mr-3"></i>My Cart</a>
-    <li><a href="#" onclick="showMyOrdersPage()" class="block py-3 px-6 text-gray-700 hover:bg-yellow-50 flex items-center"><i class="fas fa-box mr-3"></i>My Orders</a></li>
+    <a href="#" onclick="showMyOrdersPage()" class="block py-3 px-6 text-gray-700 hover:bg-yellow-50 flex items-center"><i class="fas fa-box mr-3"></i>My Orders</a>
     <hr class="my-1 border-t border-gray-200">
     <button onclick="handleLogout()" class="w-full text-left py-3 px-6 text-red-600 hover:bg-red-100 flex items-center"><i class="fas fa-sign-out-alt mr-3"></i>Logout</button>
   `;
