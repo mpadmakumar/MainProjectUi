@@ -84,10 +84,26 @@ async function showCheckOutPage() {
     return;
   }
 
-  // 🆕 Reset form + payment method when checkout opens
-  document.getElementById("checkoutForm").reset();
-  const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked');
-  if (selectedMethod) selectedMethod.checked = false;
+  // 🆕 Restore saved checkout data if exists (for Go Back & Edit)
+  const savedData = JSON.parse(localStorage.getItem('checkoutData'));
+  if (savedData) {
+    document.getElementById("checkoutCustomerName").value = savedData.customerName || '';
+    document.getElementById("checkoutAddress").value = savedData.address || '';
+    document.getElementById("checkoutCity").value = savedData.city || '';
+    document.getElementById("checkoutPincode").value = savedData.pincode || '';
+    document.getElementById("checkoutMobile").value = savedData.mobileNumber || '';
+
+    // Restore selected payment method
+    if (savedData.paymentMethod) {
+      const paymentRadio = document.querySelector(`input[name="paymentMethod"][value="${savedData.paymentMethod}"]`);
+      if (paymentRadio) paymentRadio.checked = true;
+    }
+  } else {
+    // 🆕 Reset form + payment method if no saved data
+    document.getElementById("checkoutForm").reset();
+    const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked');
+    if (selectedMethod) selectedMethod.checked = false;
+  }
 
   // Fetch cart items to calculate total and show summary
   try {
@@ -127,6 +143,7 @@ async function showCheckOutPage() {
   }
 }
 
+
  // ADD THIS NEW FUNCTION to index.js
 function showConfirmationPage() {
     hideAllContentSections();
@@ -158,7 +175,7 @@ function showConfirmationPage() {
     document.getElementById('confirm-mobile').textContent = `Mobile: ${mobileNumber}`;
     document.getElementById('confirm-subtotal').textContent = totalText;
     document.getElementById('confirm-total').textContent = totalText;
-    document.getElementById('confirm-payment').textContent = paymentText; // 🆕 Added
+    document.getElementById('confirm-payment').textContent = paymentText;
 
     // 4. Store the data in our global variable to use for payment
     finalOrderData = {
@@ -168,13 +185,24 @@ function showConfirmationPage() {
         pincode,
         mobileNumber,
         totalAmount: parseFloat(totalText.replace('₹', '')),
-        paymentMethod: selectedMethod ? selectedMethod.value : null // 🆕 store payment method
+        paymentMethod: selectedMethod ? selectedMethod.value : null
     };
 
     const userData = JSON.parse(localStorage.getItem('userData'));
     if (userData && userData.name) {
         finalOrderData.userName = userData.name;
     }
+
+    // 🆕 5. Save checkout data to localStorage to retain on Go Back
+    const checkoutData = {
+        customerName,
+        address,
+        city,
+        pincode,
+        mobileNumber,
+        paymentMethod: selectedMethod ? selectedMethod.value : null
+    };
+    localStorage.setItem('checkoutData', JSON.stringify(checkoutData));
 }
 
 function showProductsPage() {
@@ -1090,6 +1118,17 @@ document.getElementById('reviewOrderBtn').addEventListener('click', function() {
 });
 
 // payment btn
+const paymentRadios = document.querySelectorAll('input[name="paymentMethod"]');
+paymentRadios.forEach(radio => {
+    radio.addEventListener('change', function() {
+        const proceedBtn = document.getElementById('proceedToPaymentBtn');
+        if (this.value === 'cod') {
+            proceedBtn.textContent = "Proceed to Order";
+        } else {
+            proceedBtn.textContent = "Proceed to Payment";
+        }
+    });
+});
 document.getElementById('proceedToPaymentBtn').addEventListener('click', async function() {
     try {
         const userData = JSON.parse(localStorage.getItem('userData'));
@@ -1117,6 +1156,7 @@ document.getElementById('proceedToPaymentBtn').addEventListener('click', async f
 
         // --- Step 2: Payment Method Flow ---
         if (finalOrderData.paymentMethod === "cod") {
+           document.getElementById("loading").style.display = "block";
             // ✅ COD Flow - திருத்தப்பட்ட பகுதி
             const codResponse = await fetch("https://mainprojectapi.onrender.com/placeOrder", {
                 method: "POST",
@@ -1126,6 +1166,8 @@ document.getElementById('proceedToPaymentBtn').addEventListener('click', async f
             });
             
             const result = await codResponse.json();
+            
+             document.getElementById("loading").style.display = "none";
 
             if (!codResponse.ok) {
                  // Servlet-இடம் இருந்து வரும் பிழைச் செய்தியைக் காட்டவும்
