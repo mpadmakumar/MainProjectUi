@@ -283,7 +283,7 @@ async function showUserProfile() {
       phone: getSafeValue(user.phone, 'Not provided'),
       address: getSafeValue(user.address, 'Not provided')
     };
-
+    localStorage.setItem('userDetails', JSON.stringify(originalData));
   } catch (error) {
     console.error("Profile Fetch Error:", error);
     alert("Unable to load user profile.");
@@ -888,9 +888,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const formMessage = document.getElementById("formMessage");
     const deliveryDateInput = document.getElementById("deliveryDate"); 
 
+    // ✅ Load saved user data
+    const savedData = JSON.parse(localStorage.getItem('userDetails'));
+
+    if(savedData){
+        document.getElementById("emailid").value = savedData.email || '';
+        document.getElementById("phone").value = savedData.phone || '';
+        document.getElementById("uName").value = savedData.username || savedData.fullName || '';
+    }
+
     const showMessage = (msg, isSuccess) => {
         formMessage.textContent = msg;
-        alert("Message:"+ msg); 
+        alert("Message: " + msg); 
 
         formMessage.className = `mt-6 text-sm font-semibold p-4 rounded-lg ${
             isSuccess ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
@@ -905,27 +914,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        
-        // --- 📅 புதிய தேதி சரிபார்ப்பு (New Date Validation) ---
+
+        // 🔒 Step 1: Check login (username must exist in localStorage)
+        if (!savedData || !savedData.username) {
+            showMessage("❌ Please login to submit a request.", false);
+            return; // Stop here if not logged in
+        }
+
+        // --- 📅 Step 2: Validate Delivery Date ---
         const selectedDateValue = deliveryDateInput.value;
         if (!selectedDateValue) {
             showMessage("❌ Please select a delivery date.", false);
-            return; // தேதி தேர்ந்தெடுக்கவில்லை என்றால், இங்கேயே நிறுத்தவும்
+            return;
         }
 
         const selectedDate = new Date(selectedDateValue);
         const today = new Date();
-        
-        // நேரத்தை நீக்கி, தேதியை மட்டும் ஒப்பிடுவதற்காக
         today.setHours(0, 0, 0, 0); 
-        
-        // தேர்ந்தெடுக்கப்பட்ட தேதி இன்றைய தேதி அல்லது கடந்த தேதியாக இருந்தால்
+
         if (selectedDate <= today) {
             showMessage("❌ Please select a future date. Today or past dates are not allowed.", false);
-            return; // தவறான தேதி என்றால், இங்கேயே நிறுத்தவும்
+            return;
         }
-        // --- தேதி சரிபார்ப்பு முடிவு ---
 
+        // --- Step 3: Submit Request ---
         submitBtn.disabled = true;
         submitBtn.innerText = "Submitting...";
 
