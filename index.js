@@ -917,7 +917,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // 🔒 Step 1: Check login (username must exist in localStorage)
         if (!savedData || !savedData.username) {
-            showMessage("❌ Please login to submit a request.", false);
+            showMessage("❌ Please login to submit your request.", false);
             return; // Stop here if not logged in
         }
 
