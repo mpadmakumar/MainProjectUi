@@ -1,4 +1,4 @@
-require('dotenv').config();
+
 // --- Global Section References ---
 const heroSection = document.getElementById('hero-section');
 const categoriesSection = document.getElementById('categories-section');
