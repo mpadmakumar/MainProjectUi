@@ -1,4 +1,4 @@
-
+require('dotenv').config();
 // --- Global Section References ---
 const heroSection = document.getElementById('hero-section');
 const categoriesSection = document.getElementById('categories-section');
@@ -882,91 +882,436 @@ productSearchInput.addEventListener('input', (event) => {
 
 
 // request module
+// document.addEventListener("DOMContentLoaded", () => {
+//     const form = document.getElementById("customDesignForm");
+//     const submitBtn = document.getElementById("submitBtn");
+//     const formMessage = document.getElementById("formMessage");
+//     const deliveryDateInput = document.getElementById("deliveryDate"); 
+
+//     // ✅ Load saved user data
+//     const savedData = JSON.parse(localStorage.getItem('userDetails'));
+
+//     if(savedData){
+//         document.getElementById("emailid").value = savedData.email || '';
+//         document.getElementById("phone").value = savedData.phone || '';
+//         document.getElementById("uName").value = savedData.username || savedData.fullName || '';
+//     }
+
+//     const showMessage = (msg, isSuccess) => {
+//         formMessage.textContent = msg;
+//         alert("Message: " + msg); 
+
+//         formMessage.className = `mt-6 text-sm font-semibold p-4 rounded-lg ${
+//             isSuccess ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+//         }`;
+//         formMessage.classList.remove("hidden");
+//         formMessage.scrollIntoView({ behavior: "smooth" });
+
+//         setTimeout(() => {
+//             formMessage.classList.add("hidden");
+//         }, 5000);
+//     };
+
+//     form.addEventListener("submit", async (e) => {
+//         e.preventDefault();
+
+//         // 🔒 Step 1: Check login (username must exist in localStorage)
+//         if (!savedData || !savedData.username) {
+//             showMessage("❌ Please login to submit your request.", false);
+//             return; // Stop here if not logged in
+//         }
+
+//         // --- 📅 Step 2: Validate Delivery Date ---
+//         const selectedDateValue = deliveryDateInput.value;
+//         if (!selectedDateValue) {
+//             showMessage("❌ Please select a delivery date.", false);
+//             return;
+//         }
+
+//         const selectedDate = new Date(selectedDateValue);
+//         const today = new Date();
+//         today.setHours(0, 0, 0, 0); 
+
+//         if (selectedDate <= today) {
+//             showMessage("❌ Please select a future date. Today or past dates are not allowed.", false);
+//             return;
+//         }
+
+//         // --- Step 3: Submit Request ---
+//         submitBtn.disabled = true;
+//         submitBtn.innerText = "Submitting...";
+
+//         const formData = new FormData(form);
+
+//         try {
+//             const res = await fetch("https://mainprojectapi.onrender.com/userRequest", {
+//                 method: "POST",
+//                 body: formData
+//             });
+
+//             const data = await res.json();
+
+//             if (data.success) {
+//                 showMessage("✅ Your custom request has been submitted! We will contact you soon.", true);
+//                 form.reset();
+//             } else {
+//                 showMessage("❌ Something went wrong. Please try again.", false);
+//             }
+//         } catch (err) {
+//             console.error(err);
+//             showMessage("❌ Server error. Please try again later.", false);
+//         } finally {
+//             submitBtn.disabled = false;
+//             submitBtn.innerText = "Submit Request";
+//         }
+//     });
+// });
+// document.addEventListener("DOMContentLoaded", () => {
+//   // Form Elements
+//   const form = document.getElementById("customDesignForm");
+//   const finalSubmitBtn = document.getElementById("final-submit-btn");
+//   const formMessage = document.getElementById("formMessage");
+//   const descriptionInput = document.getElementById("description");
+//   const fileInput = document.getElementById("image");
+  
+//   // AI Elements
+//   const generateBtn = document.getElementById('generate-and-submit-btn');
+//   const modal = document.getElementById('selection-modal');
+//   const modalLoader = document.getElementById('modal-loader');
+//   const imageOptionsContainer = document.getElementById('image-options');
+//   const closeBtn = document.querySelector('.close-btn');
+//   const confirmSelectionBtn = document.getElementById('confirm-selection-btn');
+//   const aiImagePreviewContainer = document.getElementById('ai-image-preview-container');
+//   const aiSelectedImage = document.getElementById('ai-selected-image');
+
+//   // --- 🔑 API Key மற்றும் இறுதி URL ---
+//   const HUGGING_FACE_API_KEY =""; // <-- உங்கள் சொந்த கீயை இங்கே பேஸ்ட் செய்யவும்
+//   const API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0";
+
+//   // !!! திருத்தம் 1: 'savedData' வேரியபிள் இங்கே வரையறுக்கப்பட்டுள்ளது !!!
+//   const savedData = JSON.parse(localStorage.getItem('userDetails'));
+//   if (savedData) {
+//       document.getElementById("emailid").value = savedData.email || '';
+//       document.getElementById("phone").value = savedData.phone || '';
+//       document.getElementById("uName").value = savedData.username || savedData.fullName || '';
+//   }
+
+//   const showMessage = (msg, isSuccess) => {
+//       formMessage.textContent = msg;
+//       formMessage.className = `text-center my-4 text-sm font-semibold p-4 rounded-lg ${
+//           isSuccess ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+//       }`;
+//       formMessage.classList.remove("hidden");
+//   };
+  
+//   async function queryAPI(prompt) {
+//       const response = await fetch(API_URL, {
+//           method: 'POST',
+//           // !!! திருத்தம் 2: 'Content-Type' ஹெடர் இங்கே சேர்க்கப்பட்டுள்ளது !!!
+//           headers: {
+//               "Authorization": `Bearer ${HUGGING_FACE_API_KEY}`,
+//               "Content-Type": "application/json"
+//           },
+//           body: JSON.stringify({
+//               inputs: prompt,
+//               options: { use_cache: false, wait_for_model: true }
+//           })
+//       });
+//       if (!response.ok) {
+//           const errorText = await response.text();
+//           throw new Error(`API request failed: ${response.statusText} - Details: ${errorText}`);
+//       }
+//       return response.blob();
+//   }
+
+//   generateBtn.addEventListener('click', async (e) => {
+//       e.preventDefault();
+//       if (!form.reportValidity()) {
+//           showMessage("Please fill in all required fields (*).", false);
+//           return;
+//       }
+      
+//       modal.classList.remove('hidden');
+//       modalLoader.style.display = 'block';
+//       imageOptionsContainer.innerHTML = '';
+//       confirmSelectionBtn.classList.add('hidden');
+//       generateBtn.disabled = true;
+//       generateBtn.innerText = "Generating...";
+
+//       const prompt = `A professional high-resolution photograph of a covering jewelry: ${descriptionInput.value.trim()}, intricate details, studio lighting.`;
+//       const promises = [queryAPI(prompt), queryAPI(prompt), queryAPI(prompt), queryAPI(prompt)];
+
+//       try {
+//           const imageBlobs = await Promise.all(promises);
+//           imageBlobs.forEach(blob => {
+//               const img = document.createElement('img');
+//               img.src = URL.createObjectURL(blob);
+//               imageOptionsContainer.appendChild(img);
+//           });
+//       } catch (error) {
+//           console.error("Error generating images:", error);
+//           let detailedError = "Please check your API key and ensure you've accepted the model's terms on Hugging Face.";
+//           if (error.message.includes('503')) {
+//               detailedError = "The AI model is currently loading, please try again in a moment.";
+//           }
+//           showMessage(`❌ Failed to generate designs. ${detailedError}`, false);
+//           modal.classList.add('hidden');
+//       } finally {
+//           modalLoader.style.display = 'none';
+//           confirmSelectionBtn.classList.remove('hidden');
+//           generateBtn.disabled = false;
+//           generateBtn.innerText = "Generate AI Designs";
+//       }
+//   });
+
+//   imageOptionsContainer.addEventListener('click', (e) => {
+//       if (e.target.tagName === 'IMG') {
+//           document.querySelectorAll('#image-options img').forEach(img => img.classList.remove('selected'));
+//           e.target.classList.add('selected');
+//       }
+//   });
+
+//   confirmSelectionBtn.addEventListener('click', async () => {
+//       const selectedImg = document.querySelector('#image-options img.selected');
+//       if (!selectedImg) {
+//           alert("Please select a design.");
+//           return;
+//       }
+//       const response = await fetch(selectedImg.src);
+//       const blob = await response.blob();
+//       const file = new File([blob], "ai-generated-design.png", { type: "image/png" });
+//       const dataTransfer = new DataTransfer();
+//       dataTransfer.items.add(file);
+//       fileInput.files = dataTransfer.files;
+
+//       aiSelectedImage.src = selectedImg.src;
+//       aiImagePreviewContainer.classList.remove('hidden');
+      
+//       modal.classList.add('hidden');
+      
+//       finalSubmitBtn.classList.remove('hidden');
+//       generateBtn.classList.add('hidden');
+//   });
+  
+//   closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+
+//   form.addEventListener("submit", async (e) => {
+//       e.preventDefault();
+//       finalSubmitBtn.disabled = true;
+//       finalSubmitBtn.innerText = "Submitting...";
+//       const formData = new FormData(form);
+
+//       try {
+//           const res = await fetch("http://localhost:8081/MainProjectApis/userRequest", {
+//               method: "POST",
+//               body: formData
+//           });
+//           const data = await res.json();
+//           if (data.success) {
+//               alert("✅ Your custom request has been submitted!", true);
+//               form.reset();
+//               aiImagePreviewContainer.classList.add('hidden');
+//               finalSubmitBtn.classList.add('hidden');
+//               generateBtn.classList.remove('hidden');
+//           } else {
+//               showMessage(`❌ Submission failed: ${data.message}`, false);
+//           }
+//       } catch (err) {
+//           console.error(err);
+//           showMessage("❌ Server error. Please try again later.", false);
+//       } finally {
+//           finalSubmitBtn.disabled = false;
+//           finalSubmitBtn.innerText = "Final Submit Request";
+//       }
+//   });
+// });
 document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("customDesignForm");
-    const submitBtn = document.getElementById("submitBtn");
-    const formMessage = document.getElementById("formMessage");
-    const deliveryDateInput = document.getElementById("deliveryDate"); 
+  // Form Elements
+  const form = document.getElementById("customDesignForm");
+  const finalSubmitBtn = document.getElementById("final-submit-btn");
+  const formMessage = document.getElementById("formMessage");
+  const descriptionInput = document.getElementById("description");
+  const fileInput = document.getElementById("image");
 
-    // ✅ Load saved user data
-    const savedData = JSON.parse(localStorage.getItem('userDetails'));
+  // AI Elements
+  const generateBtn = document.getElementById("generate-and-submit-btn");
+  const modal = document.getElementById("selection-modal");
+  const modalLoader = document.getElementById("modal-loader");
+  const imageOptionsContainer = document.getElementById("image-options");
+  const closeBtn = document.querySelector(".close-btn");
+  const confirmSelectionBtn = document.getElementById("confirm-selection-btn");
+  const aiImagePreviewContainer = document.getElementById("ai-image-preview-container");
+  const aiSelectedImage = document.getElementById("ai-selected-image");
 
-    if(savedData){
-        document.getElementById("emailid").value = savedData.email || '';
-        document.getElementById("phone").value = savedData.phone || '';
-        document.getElementById("uName").value = savedData.username || savedData.fullName || '';
+  // --- 🔑 API Key நீக்கப்பட்டது (பாதுகாப்பானது) ---
+  // const HUGGING_FACE_API_KEY = ""; // (நீக்கப்பட்டது)
+  // const API_URL = "..."; // (நீக்கப்பட்டது)
+
+  // --- !!! உங்கள் Java Backend API URL-கள் !!! ---
+  // Vercel-ல் deploy செய்யும்போது 'relative path' பயன்படுத்துவது சிறந்தது.
+  const GENERATE_API_URL = "https://mainprojectapi.onrender.com/generateImage"; // <-- 1. இது உங்கள் புதிய Servlet URL
+  const SUBMIT_FORM_URL = "https://mainprojectapi.onrender.com/userRequest"; // <-- 2. இது உங்கள் பழைய Servlet URL
+
+  const savedData = JSON.parse(localStorage.getItem("userDetails"));
+  if (savedData) {
+    document.getElementById("emailid").value = savedData.email || "";
+    document.getElementById("phone").value = savedData.phone || "";
+    document.getElementById("uName").value =
+      savedData.username || savedData.fullName || "";
+  }
+
+  const showMessage = (msg, isSuccess) => {
+    formMessage.textContent = msg;
+    formMessage.className = `text-center my-4 text-sm font-semibold p-4 rounded-lg ${
+      isSuccess
+        ? "bg-green-100 text-green-700"
+        : "bg-red-100 text-red-700"
+    }`;
+    formMessage.classList.remove("hidden");
+  };
+
+  // --- !!! திருத்தப்பட்ட queryAPI Function !!! ---
+  // இது இப்போது Hugging Face-ஐ அழைக்காது. இது உங்கள் Java Backend-ஐ அழைக்கும்.
+  async function queryAPI(prompt) {
+    const response = await fetch(GENERATE_API_URL, { // <-- Java Servlet URL
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      // நாம் prompt-ஐ JSON ஆக சர்வருக்கு அனுப்புகிறோம்
+      body: JSON.stringify({
+        inputs: prompt,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `API request to *your server* failed: ${response.statusText} - Details: ${errorText}`
+      );
+    }
+    // உங்கள் சர்வரில் இருந்து படம் blob ஆகத் திரும்ப வரும்
+    return response.blob();
+  }
+
+  generateBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    if (!form.reportValidity()) {
+      showMessage("Please fill in all required fields (*).", false);
+      return;
     }
 
-    const showMessage = (msg, isSuccess) => {
-        formMessage.textContent = msg;
-        alert("Message: " + msg); 
+    modal.classList.remove("hidden");
+    modalLoader.style.display = "block";
+    imageOptionsContainer.innerHTML = "";
+    confirmSelectionBtn.classList.add("hidden");
+    generateBtn.disabled = true;
+    generateBtn.innerText = "Generating...";
 
-        formMessage.className = `mt-6 text-sm font-semibold p-4 rounded-lg ${
-            isSuccess ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-        }`;
-        formMessage.classList.remove("hidden");
-        formMessage.scrollIntoView({ behavior: "smooth" });
+    const prompt = `A professional high-resolution photograph of a covering jewelry: ${descriptionInput.value.trim()}, intricate details, studio lighting.`;
+    
+    // இந்த லாஜிக் மாறாது. இது இப்போது உங்கள் சர்வரை 4 முறை அழைக்கும்.
+    const promises = [
+      queryAPI(prompt),
+      queryAPI(prompt),
+      queryAPI(prompt),
+      queryAPI(prompt),
+    ];
 
-        setTimeout(() => {
-            formMessage.classList.add("hidden");
-        }, 5000);
-    };
+    try {
+      const imageBlobs = await Promise.all(promises);
+      imageBlobs.forEach((blob) => {
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(blob);
+        imageOptionsContainer.appendChild(img);
+      });
+    } catch (error) {
+      console.error("Error generating images:", error);
+      let detailedError =
+        "Failed to contact your server. Please check the backend logs.";
+      if (error.message.includes("503")) {
+        detailedError =
+          "The AI model (via backend) is loading, please try again.";
+      }
+      showMessage(`❌ Failed to generate designs. ${detailedError}`, false);
+      modal.classList.add("hidden");
+    } finally {
+      modalLoader.style.display = "none";
+      confirmSelectionBtn.classList.remove("hidden");
+      generateBtn.disabled = false;
+      generateBtn.innerText = "Generate AI Designs";
+    }
+  });
 
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
+  // --- மீதமுள்ள கோட் எதுவும் மாறவில்லை ---
 
-        // 🔒 Step 1: Check login (username must exist in localStorage)
-        if (!savedData || !savedData.username) {
-            showMessage("❌ Please login to submit your request.", false);
-            return; // Stop here if not logged in
-        }
+  imageOptionsContainer.addEventListener("click", (e) => {
+    if (e.target.tagName === "IMG") {
+      document
+        .querySelectorAll("#image-options img")
+        .forEach((img) => img.classList.remove("selected"));
+      e.target.classList.add("selected");
+    }
+  });
 
-        // --- 📅 Step 2: Validate Delivery Date ---
-        const selectedDateValue = deliveryDateInput.value;
-        if (!selectedDateValue) {
-            showMessage("❌ Please select a delivery date.", false);
-            return;
-        }
-
-        const selectedDate = new Date(selectedDateValue);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); 
-
-        if (selectedDate <= today) {
-            showMessage("❌ Please select a future date. Today or past dates are not allowed.", false);
-            return;
-        }
-
-        // --- Step 3: Submit Request ---
-        submitBtn.disabled = true;
-        submitBtn.innerText = "Submitting...";
-
-        const formData = new FormData(form);
-
-        try {
-            const res = await fetch("https://mainprojectapi.onrender.com/userRequest", {
-                method: "POST",
-                body: formData
-            });
-
-            const data = await res.json();
-
-            if (data.success) {
-                showMessage("✅ Your custom request has been submitted! We will contact you soon.", true);
-                form.reset();
-            } else {
-                showMessage("❌ Something went wrong. Please try again.", false);
-            }
-        } catch (err) {
-            console.error(err);
-            showMessage("❌ Server error. Please try again later.", false);
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerText = "Submit Request";
-        }
+  confirmSelectionBtn.addEventListener("click", async () => {
+    const selectedImg = document.querySelector("#image-options img.selected");
+    if (!selectedImg) {
+      alert("Please select a design.");
+      return;
+    }
+    const response = await fetch(selectedImg.src);
+    const blob = await response.blob();
+    const file = new File([blob], "ai-generated-design.png", {
+      type: "image/png",
     });
-});
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    fileInput.files = dataTransfer.files;
 
+    aiSelectedImage.src = selectedImg.src;
+    aiImagePreviewContainer.classList.remove("hidden");
+
+    modal.classList.add("hidden");
+
+    finalSubmitBtn.classList.remove("hidden");
+    generateBtn.classList.add('hidden');
+  });
+
+  closeBtn.addEventListener("click", () => modal.classList.add("hidden"));
+
+  // --- !!! திருத்தப்பட்ட Form Submit !!! ---
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    finalSubmitBtn.disabled = true;
+    finalSubmitBtn.innerText = "Submitting...";
+    const formData = new FormData(form);
+
+    try {
+      // Vercel-ல் வேலை செய்ய, 'localhost' URL-ஐப் பயன்படுத்த வேண்டாம்.
+      const res = await fetch(SUBMIT_FORM_URL, { // <-- Java Servlet URL
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("✅ Your custom request has been submitted!", true);
+        form.reset();
+        aiImagePreviewContainer.classList.add("hidden");
+        finalSubmitBtn.classList.add("hidden");
+        generateBtn.classList.remove("hidden");
+      } else {
+        showMessage(`❌ Submission failed: ${data.message}`, false);
+      }
+    } catch (err) {
+      console.error(err);
+      showMessage("❌ Server error. Please try again later.", false);
+    } finally {
+      finalSubmitBtn.disabled = false;
+      finalSubmitBtn.innerText = "Final Submit Request";
+    }
+  });
+});
 
 
 
@@ -1141,82 +1486,483 @@ paymentRadios.forEach(radio => {
         }
     });
 });
-document.getElementById('proceedToPaymentBtn').addEventListener('click', async function() {
+// document.getElementById('proceedToPaymentBtn').addEventListener('click', async function() {
+//     try {
+//         const userData = JSON.parse(localStorage.getItem('userData'));
+//         if (!userData || !userData.name) {
+//             throw new Error("User not logged in");
+//         }
+
+//         // --- Step 0: Payment Method select check ---
+//         const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked');
+//         if (!selectedMethod) {
+//             alert("Please select a payment method!");
+//             return;
+//         }
+//         finalOrderData.paymentMethod = selectedMethod.value; // "cod" or "online"
+
+//         // --- Step 1: Fetch cart items ---
+//         const cartResponse = await fetch(`http://localhost:8081/MainProjectApis/viewCart?userName=${userData.name}`);
+//         if (!cartResponse.ok) throw new Error("Failed to fetch cart from API.");
+//         const cartItems = await cartResponse.json();
+//         if (!cartItems || cartItems.length === 0) throw new Error("Cannot proceed with an empty cart.");
+//         finalOrderData.cartItems = cartItems;
+
+//         // Save order data locally (success page use)
+//         localStorage.setItem('finalOrderDataForFulfillment', JSON.stringify(finalOrderData));
+
+//         // --- Step 2: Payment Method Flow ---
+//         if (finalOrderData.paymentMethod === "cod") {
+//             // ✅ COD Flow with loader only
+//             document.getElementById("loading").style.display = "block"; // show loader
+
+
+//             const codResponse = await fetch("http://localhost:8081/MainProjectApis/placeOrder", {
+//                 method: "POST",
+//                 headers: { "Content-Type": "application/json" },
+//                 body: JSON.stringify(finalOrderData) 
+//             });
+
+//             const result = await codResponse.json();
+
+//             document.getElementById("loading").style.display = "none"; // hide loader
+
+//             if (!codResponse.ok) {
+//                 throw new Error(result.message || "Failed to place COD order.");
+//             }
+
+//             if (result.status === 'success' && result.redirectUrl) {
+//                 // direct redirect to success page
+//                 window.location.href = result.redirectUrl;
+//             } else {
+//                 throw new Error('Order placed, but redirect failed.');
+//             }
+
+//         } else {
+//             // ✅ Online Payment (Cashfree)
+//             const response = await fetch('http://localhost:8081/MainProjectApis/create-cashfree-session', {
+//                 method: 'POST',
+//                 headers: { 'Content-Type': 'application/json' },
+//                 body: JSON.stringify(finalOrderData)
+//             });
+
+//             const sessionData = await response.json();
+//             if (sessionData.error) throw new Error(sessionData.error);
+//             const paymentSessionId = sessionData.payment_session_id;
+//             if (!paymentSessionId) throw new Error("Failed to get payment_session_id from the server.");
+
+//             const cashfree = new Cashfree({ mode: "sandbox" });
+//             cashfree.checkout({
+//                 paymentSessionId: paymentSessionId,
+//                 redirectTarget: "_self"
+//             });
+//         }
+
+//     } catch (error) {
+//         console.error(error);
+//         document.getElementById("loading").style.display = "none"; // hide loader on error
+//         alert(`Payment Error: ${error.message}`);
+//     }
+// });
+
+
+
+// order page
+// 🟢 START: UPI Modal Elements (புதியதாக சேர்க்கவும்)
+const upiModal = document.getElementById('upi-qr-modal');
+const closeModalBtn = document.getElementById('close-modal-btn');
+const finalUpiSubmitBtn = document.getElementById('final-upi-submit-btn');
+const upiTransactionIdInput = document.getElementById('upi-transaction-id');
+const upiPayableAmount = document.getElementById('upi-payable-amount');
+
+
+// 🟢 START: Listener to close the UPI modal (புதியதாக சேர்க்கவும்)
+closeModalBtn.addEventListener('click', () => {
+    upiModal.style.display = 'none';
+});
+
+
+// 🔴 உங்கள் பழைய 'showCheckOutPage' ஃபங்ஷனை இதைக் கொண்டு மாற்றவும்
+async function showCheckOutPage() {
+    hideAllContentSections();
+    const CheckOutSection = document.getElementById('checkout-section');
+    CheckOutSection.classList.remove("hidden");
+    window.scrollTo({ top: CheckOutSection.offsetTop, behavior: "smooth" });
+    localStorage.setItem("lastSection", "checkout");
+
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    if (!userData || !userData.name) {
+        alert("Please login to proceed to checkout.");
+        showHomePage(); // Redirect if not logged in
+        return;
+    }
+
+    const savedData = JSON.parse(localStorage.getItem('checkoutData'));
+    if (savedData) {
+        document.getElementById("checkoutCustomerName").value = savedData.customerName || '';
+        document.getElementById("checkoutAddress").value = savedData.address || '';
+        document.getElementById("checkoutCity").value = savedData.city || '';
+        document.getElementById("checkoutPincode").value = savedData.pincode || '';
+        document.getElementById("checkoutMobile").value = savedData.mobileNumber || '';
+
+        if (savedData.paymentMethod) {
+            const paymentRadio = document.querySelector(`input[name="paymentMethod"][value="${savedData.paymentMethod}"]`);
+            if (paymentRadio) paymentRadio.checked = true;
+        }
+    } else {
+        document.getElementById("checkoutForm").reset();
+        document.querySelector('input[name="paymentMethod"][value="cod"]').checked = true; // Default to COD
+    }
+
     try {
-        const userData = JSON.parse(localStorage.getItem('userData'));
-        if (!userData || !userData.name) {
-            throw new Error("User not logged in");
-        }
+        const VIEW_CART_API_URL = 'https://mainprojectapi.onrender.com/viewCart';
+        const response = await fetch(`${VIEW_CART_API_URL}?userName=${userData.name}`);
+        if (!response.ok) throw new Error("Failed to load cart for summary.");
+        const cartItems = await response.json();
 
-        // --- Step 0: Payment Method select check ---
-        const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked');
-        if (!selectedMethod) {
-            alert("Please select a payment method!");
-            return;
-        }
-        finalOrderData.paymentMethod = selectedMethod.value; // "cod" or "online"
+        let subtotal = 0; // Renamed variable for clarity
+        const summaryContainer = document.getElementById("checkoutOrderSummary");
+        summaryContainer.innerHTML = "";
 
-        // --- Step 1: Fetch cart items ---
-        const cartResponse = await fetch(`https://mainprojectapi.onrender.com/viewCart?userName=${userData.name}`);
-        if (!cartResponse.ok) throw new Error("Failed to fetch cart from API.");
-        const cartItems = await cartResponse.json();
-        if (!cartItems || cartItems.length === 0) throw new Error("Cannot proceed with an empty cart.");
-        finalOrderData.cartItems = cartItems;
+        cartItems.forEach((item) => {
+            const itemTotal = item.price * item.quantity;
+            subtotal += itemTotal;
+            const summaryItemHtml = `
+              <div class="flex justify-between items-center text-sm">
+                <span class="text-gray-600">${item.name} (x${item.quantity})</span>
+                <span class="font-medium text-gray-800">₹${itemTotal.toFixed(2)}</span>
+              </div>
+            `;
+            summaryContainer.insertAdjacentHTML("beforeend", summaryItemHtml);
+        });
+        
+        // --- 🟢 GST Calculation Added Here 🟢 ---
 
-        // Save order data locally (success page use)
-        localStorage.setItem('finalOrderDataForFulfillment', JSON.stringify(finalOrderData));
+        // 1. Define the GST rate (3%)
+        const gstRate = 0.03;
 
-        // --- Step 2: Payment Method Flow ---
-        if (finalOrderData.paymentMethod === "cod") {
-           document.getElementById("loading").style.display = "block";
-            // ✅ COD Flow - திருத்தப்பட்ட பகுதி
-            const codResponse = await fetch("https://mainprojectapi.onrender.com/placeOrder", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                // finalOrderData-வில் உள்ள அனைத்து விவரங்களையும் அனுப்புகிறோம்
-                body: JSON.stringify(finalOrderData) 
-            });
-            
-            const result = await codResponse.json();
-            
-             document.getElementById("loading").style.display = "none";
+        // 2. Calculate the GST amount
+        const gstAmount = subtotal * gstRate;
 
-            if (!codResponse.ok) {
-                 // Servlet-இடம் இருந்து வரும் பிழைச் செய்தியைக் காட்டவும்
-                throw new Error(result.message || "Failed to place COD order.");
-            }
-            
-            // ✅ Servlet அனுப்பிய redirectUrl-ஐப் பயன்படுத்தி success பக்கத்திற்குச் செல்லவும்
-            if (result.status === 'success' && result.redirectUrl) {
-                window.location.href = result.redirectUrl;
-            } else {
-                throw new Error('Order placed, but redirect failed.');
-            }
+        // 3. Calculate the final grand total
+        const grandTotal = subtotal + gstAmount;
 
-        } else {
-            // Online Payment (Cashfree) - இந்த பகுதியில் மாற்றம் இல்லை
-            const response = await fetch('https://mainprojectapi.onrender.com/create-cashfree-session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(finalOrderData)
-            });
-
-            const sessionData = await response.json();
-            if (sessionData.error) throw new Error(sessionData.error);
-            const paymentSessionId = sessionData.payment_session_id;
-            if (!paymentSessionId) throw new Error("Failed to get payment_session_id from the server.");
-
-            const cashfree = new Cashfree({ mode: "sandbox" });
-            cashfree.checkout({
-                paymentSessionId: paymentSessionId,
-                redirectTarget: "_self"
-            });
-        }
+        // 4. Display all three values in the HTML
+        document.getElementById("checkoutSubtotal").textContent = `₹${subtotal.toFixed(2)}`;
+        document.getElementById("checkoutGst").textContent = `₹${gstAmount.toFixed(2)}`;
+        document.getElementById("checkoutTotalPrice").textContent = `₹${grandTotal.toFixed(2)}`;
 
     } catch (error) {
-        console.error(error);
-        alert(`Payment Error: ${error.message}`);
+        console.error("Checkout summary error:", error);
+        document.getElementById("checkoutOrderSummary").innerHTML =
+            '<p class="text-red-500">Could not load order summary.</p>';
     }
+}
+
+
+// 🔴 உங்கள் பழைய 'showConfirmationPage' ஃபங்ஷனை இதைக் கொண்டு மாற்றவும்
+function showConfirmationPage() {
+    hideAllContentSections();
+    confirmationSection.classList.remove('hidden');
+    window.scrollTo({ top: confirmationSection.offsetTop, behavior: 'smooth' });
+    localStorage.setItem('lastSection', 'confirmation');
+
+    const customerName = document.getElementById('checkoutCustomerName').value;
+    const address = document.getElementById('checkoutAddress').value;
+    const city = document.getElementById('checkoutCity').value;
+    const pincode = document.getElementById('checkoutPincode').value;
+    const mobileNumber = document.getElementById('checkoutMobile').value;
+    const totalText = document.getElementById('checkoutTotalPrice').textContent;
+    const subtotalText = document.getElementById('checkoutSubtotal').textContent;
+
+    const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked');
+    let paymentText = "Not Selected";
+    if (selectedMethod) {
+        if (selectedMethod.value === "cod") {
+            paymentText = "Cash on Delivery";
+        } else if (selectedMethod.value === "online") {
+            paymentText = "Online Payment";
+        } else if (selectedMethod.value === "upi") { // 🟢 UPIக்கு டெக்ஸ்ட் சேர்க்கவும்
+            paymentText = "UPI (QR Code)";
+        }
+    }
+
+    document.getElementById('confirm-name').textContent = customerName;
+    document.getElementById('confirm-address').textContent = address;
+    document.getElementById('confirm-city-pincode').textContent = `${city} - ${pincode}`;
+    document.getElementById('confirm-mobile').textContent = `Mobile: ${mobileNumber}`;
+    document.getElementById('confirm-subtotal1').textContent =subtotalText;
+    document.getElementById('confirm-payment').textContent = paymentText;
+     document.getElementById('confirm-total').textContent = totalText;
+
+    finalOrderData = {
+        customerName, address, city, pincode, mobileNumber,
+        totalAmount: parseFloat(totalText.replace('₹', '')),
+        paymentMethod: selectedMethod ? selectedMethod.value : null
+    };
+
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    if (userData && userData.name) {
+        finalOrderData.userName = userData.name;
+    }
+    
+    const checkoutData = {
+        customerName, address, city, pincode, mobileNumber,
+        paymentMethod: selectedMethod ? selectedMethod.value : null
+    };
+    localStorage.setItem('checkoutData', JSON.stringify(checkoutData));
+}
+
+
+// 🔴 உங்கள் பழைய 'proceedToPaymentBtn' லிஸனரை நீக்கிவிட்டு, இதை முழுவதுமாக சேர்க்கவும்.
+// document.getElementById('proceedToPaymentBtn').addEventListener('click', async function() {
+//     try {
+//         const userData = JSON.parse(localStorage.getItem('userData'));
+//         if (!userData || !userData.name) throw new Error("User not logged in");
+
+//         const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked');
+//         if (!selectedMethod) {
+//             alert("Please select a payment method!");
+//             return;
+//         }
+//         finalOrderData.paymentMethod = selectedMethod.value;
+
+//         const cartResponse = await fetch(`http://localhost:8081/MainProjectApis/viewCart?userName=${userData.name}`);
+//         if (!cartResponse.ok) throw new Error("Failed to fetch cart from API.");
+//         const cartItems = await cartResponse.json();
+//         if (!cartItems || cartItems.length === 0) throw new Error("Cannot proceed with an empty cart.");
+//         finalOrderData.cartItems = cartItems;
+
+//         localStorage.setItem('finalOrderDataForFulfillment', JSON.stringify(finalOrderData));
+        
+//         // --- Payment Flow ---
+//         if (finalOrderData.paymentMethod === "cod") {
+//             document.getElementById("loading").style.display = "block";
+//             const codResponse = await fetch("http://localhost:8081/MainProjectApis/placeOrder", {
+//                 method: "POST",
+//                 headers: { "Content-Type": "application/json" },
+//                 body: JSON.stringify(finalOrderData)
+//             });
+//             const result = await codResponse.json();
+//             document.getElementById("loading").style.display = "none";
+//             if (!codResponse.ok) throw new Error(result.message || "Failed to place COD order.");
+//             if (result.status === 'success' && result.redirectUrl) {
+//                 window.location.href = result.redirectUrl;
+//             } else {
+//                 throw new Error('Order placed, but redirect failed.');
+//             }
+//         } 
+//         else if (finalOrderData.paymentMethod === "online") {
+//              // Online Payment (Cashfree)
+//             const response = await fetch('http://localhost:8081/MainProjectApis/create-cashfree-session', {
+//                 method: 'POST',
+//                 headers: { 'Content-Type': 'application/json' },
+//                 body: JSON.stringify(finalOrderData)
+//             });
+//             const sessionData = await response.json();
+//             if (sessionData.error) throw new Error(sessionData.error);
+//             const paymentSessionId = sessionData.payment_session_id;
+//             if (!paymentSessionId) throw new Error("Failed to get payment_session_id from the server.");
+
+//             const cashfree = new Cashfree({ mode: "sandbox" });
+//             cashfree.checkout({
+//                 paymentSessionId: paymentSessionId,
+//                 redirectTarget: "_self"
+//             });
+//         } 
+//         else if (finalOrderData.paymentMethod === "upi") {
+//             // 🟢 UPI Flow: Open the modal
+//             upiPayableAmount.textContent = `Amount: ₹${finalOrderData.totalAmount.toFixed(2)}`;
+//             upiModal.style.display = 'flex'; // Use flex to center it
+//         }
+
+//     } catch (error) {
+//         console.error(error);
+//         document.getElementById("loading").style.display = "none";
+//         alert(`Payment Error: ${error.message}`);
+//     }
+// });
+// 🔴 உங்கள் பழைய 'proceedToPaymentBtn' லிஸனரை நீக்கிவிட்டு, இதை முழுவதுமாக சேர்க்கவும்.
+// 🟢 ஒரு குளோபல் வேரியபிளைச் சேர்க்கவும் (டைமரை நிறுத்த)
+let upiTimer = null; 
+let finalOrderData = {}; // finalOrderData-ஐ இங்கே வரையறுப்பது நல்லது
+
+// --- மற்ற ஃபங்ஷன்கள் (showCheckOutPage, showConfirmationPage போன்றவை அப்படியே இருக்கும்) ---
+// ...
+// ...
+
+
+// 🔴 உங்கள் பழைய 'proceedToPaymentBtn' லிஸனரை நீக்கிவிட்டு, இதை முழுவதுமாக சேர்க்கவும்.
+document.addEventListener("DOMContentLoaded", function() {
+
+    // ===================================================================
+    // 1. Element Selections
+    // ===================================================================
+    const checkoutForm = document.getElementById('checkoutForm');
+    const reviewOrderBtn = document.getElementById('reviewOrderBtn');
+    const proceedToPaymentBtn = document.getElementById('proceedToPaymentBtn');
+    const loadingSpinner = document.getElementById('loading');
+    const CheckOutSection = document.getElementById('checkout-section');
+    const confirmationSection = document.getElementById('confirmation-section');
+
+    // UPI Modal Elements for Manual Confirmation
+    const upiModal = document.getElementById('upi-qr-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const finalUpiSubmitBtn = document.getElementById('final-upi-submit-btn');
+    const upiTransactionIdInput = document.getElementById('upi-transaction-id');
+    const upiPayableAmount = document.getElementById('upi-payable-amount');
+
+    // Global variable to hold order data
+    let finalOrderData = {};
+
+
+    // ===================================================================
+    // 2. Main Event Listeners
+    // ===================================================================
+
+    // "Review Your Order" button
+    if (reviewOrderBtn) {
+        reviewOrderBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (checkoutForm.checkValidity()) {
+                showConfirmationPage();
+            } else {
+                checkoutForm.reportValidity();
+            }
+        });
+    }
+
+    // "Proceed to Payment" button
+    if (proceedToPaymentBtn) {
+        proceedToPaymentBtn.addEventListener('click', async function() {
+            try {
+                const userData = JSON.parse(localStorage.getItem('userData'));
+                if (!userData || !userData.name) throw new Error("User not logged in");
+
+                const cartResponse = await fetch(`https://mainprojectapi.onrender.com/viewCart?userName=${userData.name}`);
+                if (!cartResponse.ok) throw new Error("Failed to fetch cart from API.");
+                const cartItems = await cartResponse.json();
+                if (!cartItems || cartItems.length === 0) throw new Error("Cannot proceed with an empty cart.");
+
+                finalOrderData.userName = userData.name;
+                finalOrderData.cartItems = cartItems;
+                localStorage.setItem('finalOrderDataForFulfillment', JSON.stringify(finalOrderData));
+
+                // --- Payment Flow Logic ---
+                if (finalOrderData.paymentMethod === "cod") {
+                    await placeOrder(finalOrderData);
+                } else if (finalOrderData.paymentMethod === "online") {
+                    // initiateCashfreePayment(finalOrderData); // Your Cashfree logic would go here
+                } else if (finalOrderData.paymentMethod === "upi") {
+                    initiateUpiPayment(finalOrderData);
+                }
+            } catch (error) {
+                alert(`An error occurred: ${error.message}`);
+            }
+        });
+    }
+
+    // "Confirm & Place Order" button inside the UPI Modal
+    if (finalUpiSubmitBtn) {
+        finalUpiSubmitBtn.addEventListener('click', async () => {
+            const transactionId = upiTransactionIdInput.value.trim();
+            if (!transactionId || transactionId.length < 12) {
+                alert("Please enter a valid 12-digit UPI Transaction ID.");
+                return;
+            }
+            finalOrderData.transactionId = transactionId;
+            await placeOrder(finalOrderData);
+        });
+    }
+
+    // "Cancel" button in the UPI Modal
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', () => {
+            upiModal.style.display = 'none';
+        });
+    }
+
+    // ===================================================================
+    // 3. Helper and Page Display Functions
+    // ===================================================================
+    
+    // Shows the UPI modal with the QR code
+    function initiateUpiPayment(orderData) {
+        const yourUpiId = "padmakumar745@okicici";
+        const yourName = "Padmakumar";
+        const amount = orderData.totalAmount.toFixed(2);
+        const encodedName = encodeURIComponent(yourName);
+        const upiString = `upi://pay?pa=${yourUpiId}&pn=${encodedName}&am=${amount}&cu=INR&tn=OrderPayment`;
+
+        new QRious({
+            element: document.getElementById('upi-qr-code'),
+            value: upiString, size: 200, padding: 15
+        });
+
+        upiPayableAmount.textContent = `Amount: ₹${amount}`;
+        upiModal.style.display = 'flex';
+    }
+
+    // A general function to send the final order to your backend
+    async function placeOrder(orderData) {
+        if (upiModal) upiModal.style.display = 'none';
+        if (loadingSpinner) loadingSpinner.style.display = "block";
+
+        try {
+            const response = await fetch("https://mainprojectapi.onrender.com/placeOrder", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(orderData)
+            });
+            const result = await response.json();
+            if (response.ok && result.status === 'success' && result.redirectUrl) {
+                window.location.href = result.redirectUrl;
+            } else {
+                throw new Error(result.message || 'Order placement failed.');
+            }
+        } catch (err) {
+            alert(`Order Error: ${err.message}`);
+        } finally {
+            if (loadingSpinner) loadingSpinner.style.display = "none";
+        }
+    }
+    
+    // Function to show the confirmation page and gather data into finalOrderData
+    window.showConfirmationPage = function() {
+        if(CheckOutSection) CheckOutSection.classList.add('hidden');
+        if(confirmationSection) confirmationSection.classList.remove('hidden');
+        
+        const customerName = document.getElementById('checkoutCustomerName').value;
+        const address = document.getElementById('checkoutAddress').value;
+        const city = document.getElementById('checkoutCity').value;
+        const pincode = document.getElementById('checkoutPincode').value;
+        const mobileNumber = document.getElementById('checkoutMobile').value;
+        const totalText = document.getElementById('checkoutTotalPrice').textContent;
+        const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked');
+        
+        finalOrderData = {
+            customerName, address, city, pincode, mobileNumber,
+            totalAmount: parseFloat(totalText.replace('₹', '')),
+            paymentMethod: selectedMethod ? selectedMethod.value : null,
+        };
+        
+        document.getElementById('confirm-name').textContent = customerName;
+        document.getElementById('confirm-address').textContent = address;
+        document.getElementById('confirm-city-pincode').textContent = `${city} - ${pincode}`;
+        document.getElementById('confirm-mobile').textContent = `Mobile: ${mobileNumber}`;
+        document.getElementById('confirm-total').textContent = totalText;
+    };
+
+});
+
+// 🔴 உங்கள் பழைய 'close-modal-btn' லிஸனரை நீக்கிவிட்டு, இதைச் சேர்க்கவும்.
+closeModalBtn.addEventListener('click', () => {
+    // டைமர் ஓடிக்கொண்டிருந்தால், அதை நிறுத்தவும்
+    if(upiTimer) {
+        clearTimeout(upiTimer);
+        console.log("Timer cancelled by user.");
+    }
+    upiModal.style.display = 'none';
 });
 
 

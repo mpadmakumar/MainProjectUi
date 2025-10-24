@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'users-section': fetchUsers(); break;
             case 'requests-section': fetchRequests(); break;
             // ✅ NEW: Call fetchPayments when the payments section is shown
-            case 'payments-section': fetchPayments(); break;
+            case 'payments-section': fetchPaymentDetails(); break;
         }
     };
 
@@ -387,63 +387,65 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- ✅✅✅ NEW: Function to fetch and display payment details ✅✅✅ ---
 // ✅ மேம்படுத்தப்பட்ட fetchPayments செயல்பாடு
-async function fetchPayments() {
+document.addEventListener("DOMContentLoaded", () => {
+    // This function will be called when your "Payment Details" section is shown
+    fetchPaymentDetails(); 
+});
+
+// API endpoint to get all order data
+const ADMIN_GET_ORDERS_URL = 'https://mainprojectapi.onrender.com/admin/getOrders';
+
+// This function fetches all orders and displays them in a table like your image
+async function fetchPaymentDetails() {
     const container = document.getElementById('paymentsTableContainer');
-    showLoading(true);
     container.innerHTML = `<p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Loading payment details...</p>`;
 
     try {
-        const response = await fetch(PAYMENTS_URL);
+        const response = await fetch(ADMIN_GET_ORDERS_URL); 
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
-        const payments = await response.json();
+        const orders = await response.json();
 
-        if (!payments || payments.length === 0) {
+        if (!orders || orders.length === 0) {
             container.innerHTML = '<p class="empty-message">No payment records found.</p>';
             return;
         }
-        // <th>Payment ID</th>
-        // <td>${payment.payment_id}</td>
+
+        // 🟢 Create table headers exactly like your image
         let tableHtml = `<table class="data-table">
                             <thead>
                                 <tr>
-                                   
                                     <th>Order ID</th>
-                                    <th>Customer Name</th>
-                                    <th>Payment Method</th>
+                                    <th>Customer</th>
                                     <th>Amount</th>
+                                    <th>Payment Method</th>
                                     <th>Payment Status</th>
-                                    <th>Date</th>
-                                    <th>Actions</th>
+                                    <th>Transaction ID</th>
                                 </tr>
                             </thead>
                             <tbody>`;
         
-        payments.forEach(payment => {
-            const currentStatus = payment.payment_status || 'N/A';
+        orders.forEach(order => {
+            const paymentStatus = order.paymentStatus || 'N/A';
             
-            // ✅ முக்கிய மாற்றம்: பேமெண்ட் ஸ்டேட்டஸை ஒரு dropdown ஆக மாற்றுகிறோம்
+            // 🟢 Dropdown to UPDATE Payment Status
             const paymentStatusDropdown = `
-                <select onchange="updatePaymentStatus(this, ${payment.payment_id})" class="status-select status-${currentStatus.toLowerCase()}">
-                    <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
-                    <option value="Paid" ${currentStatus === 'Paid' ? 'selected' : ''}>Paid</option>
-                    <option value="Failed" ${currentStatus === 'Failed' ? 'selected' : ''}>Failed</option>
-                    <option value="Refunded" ${currentStatus === 'Refunded' ? 'selected' : ''}>Refunded</option>
+                <select onchange="updatePaymentStatus(this, '${order.orderIdText}')" class="status-select status-${paymentStatus.toLowerCase().replace(/ /g, '-')}">
+                    <option value="Pending" ${paymentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
+                    <option value="Verification Pending" ${paymentStatus === 'Verification Pending' ? 'selected' : ''}>Verification Pending</option>
+                    <option value="Paid" ${paymentStatus === 'Paid' ? 'selected' : ''}>Paid</option>
+                    <option value="Failed" ${paymentStatus === 'Failed' ? 'selected' : ''}>Failed</option>
                 </select>
             `;
 
-            let actionButtons = `<button onclick="viewOrderDetails(${payment.payment_id})" class="btn btn-secondary btn-sm" title="View Order Details"><i class="fas fa-eye"></i></button>`;
-
             tableHtml += `
                 <tr>
-                    
-                    <td>${payment.order_id}</td>
-                    <td>${payment.customer_name || 'N/A'}</td>
-                    <td>${payment.payment_method}</td>
-                    <td class="font-semibold">Rs.${(payment.amount || 0).toFixed(2)}</td>
+                    <td>#${order.orderIdText}</td>
+                    <td>${order.customerName || 'N/A'}</td>
+                    <td class="font-semibold">₹${(order.totalAmount || 0).toFixed(2)}</td>
+                    <td>${order.paymentMethod}</td>
                     <td>${paymentStatusDropdown}</td>
-                    <td>${payment.payment_date}</td>
-                    <td class="actions">${actionButtons}</td>
+                    <td class="transaction-id">${order.transactionId || 'N/A'}</td>
                 </tr>`;
         });
 
@@ -451,52 +453,45 @@ async function fetchPayments() {
         container.innerHTML = tableHtml;
 
     } catch (error) {
-        console.error("Failed to fetch payments:", error);
-        container.innerHTML = `<p class="error-message"><i class="fas fa-exclamation-circle"></i> Failed to load payment details.</p>`;
-    } finally {
-        showLoading(false);
+        console.error("Failed to fetch orders:", error);
+        container.innerHTML = `<p class="error-message">Failed to load payment details.</p>`;
     }
 }
 
-// ✅ dropdown-ஐ மாற்றும்போது அழைக்கப்படும் புதிய செயல்பாடு
-// window object-ல் இதை சேர்ப்பதால், HTML-லிருந்து நேரடியாக அழைக்க முடியும்
-window.updatePaymentStatus = async function(selectElement, paymentId) {
+// This function updates ONLY the payment status
+window.updatePaymentStatus = async function(selectElement, orderIdText) {
     const newStatus = selectElement.value;
+    const ADMIN_UPDATE_PAYMENT_STATUS_URL = 'https://mainprojectapi.onrender.com/admin/updatePaymentStatus';
     
-    // மாற்றத்தை உறுதிப்படுத்த ஒரு பாப்-அப்
-    if (!confirm(`Are you sure you want to change the payment status for Payment ID #${paymentId} to "${newStatus}"?`)) {
-        fetchPayments(); // பயனர் 'Cancel' அழுத்தினால், பழைய நிலைக்குத் திரும்ப டேபிளைப் புதுப்பிக்கவும்
+    if (!confirm(`Are you sure you want to change the PAYMENT status for Order #${orderIdText} to "${newStatus}"?`)) {
+        fetchPaymentDetails(); // Reload table to revert the dropdown if cancelled
         return;
     }
 
-    showLoading(true);
-
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/updatePaymentStatus`, {
+        const response = await fetch(ADMIN_UPDATE_PAYMENT_STATUS_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                paymentId: paymentId,
+                orderIdText: orderIdText,
                 newStatus: newStatus
             })
         });
 
         const result = await response.json();
-
         if (result.status === 'success') {
             alert(result.message);
-            fetchPayments(); // வெற்றிகரமாக மாறிய பிறகு டேபிளைப் புதுப்பிக்கவும்
+            fetchPaymentDetails(); // Refresh table on success
         } else {
             throw new Error(result.message);
         }
     } catch (error) {
-        console.error("Failed to update payment status:", error);
+        console.error(`Failed to update payment status:`, error);
         alert(`Error: ${error.message}`);
-        fetchPayments(); // பிழை ஏற்பட்டாலும் பழைய நிலைக்குத் திரும்பவும்
-    } finally {
-        showLoading(false);
+        fetchPaymentDetails(); // Revert on error
     }
 }
+
 
 
 

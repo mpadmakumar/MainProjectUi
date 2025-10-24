@@ -164,7 +164,74 @@
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
+/* Add this to your existing CSS */
+#ai-image-preview-container {
+    display: none; /* Initially hidden */
+}
+#ai-image-preview-container img {
+    border: 1px solid #eab308; /* Tailwind yellow-600 */
+}
 
+/* Modal (Pop-up) Styles - if not already added from previous example */
+.modal-content {
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+#image-options img {
+    width: 100%;
+    height: 256px;
+    object-fit: cover;
+    cursor: pointer;
+    border: 4px solid transparent;
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+#image-options img:hover {
+    transform: scale(1.05);
+}
+
+/* Style for the selected image */
+#image-options img.selected {
+    border-color: #f59e0b; /* Tailwind yellow-500 */
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.6);
+}
+@keyframes modal-pop-in {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.animate-modal-pop-in {
+  animation: modal-pop-in 0.3s ease-out forwards;
+}
+/* இந்த CSS-ஐ உங்கள் ஸ்டைல் ஃபைலில் சேர்க்கவும் */
+.spinner-simple {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-left-color: #f59e0b; /* yellow-500 */
+  animation: spin 1s ease infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
   </style>
 </head>
 <body class="bg-gray-200 text-gray-800 font-sans ">
@@ -533,10 +600,8 @@
     <h1 class="text-4xl font-bold text-yellow-700 text-center mb-8">Checkout</h1>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
       
-      <!-- Shipping + Payment Details -->
       <div class="space-y-8">
         
-        <!-- Shipping Details -->
         <div class="bg-white p-8 rounded-2xl shadow-lg">
           <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-4">Shipping Details</h2>
           <form id="checkoutForm" class="space-y-5">
@@ -565,59 +630,63 @@
           </form>
         </div>
 
-        <!-- Payment Method -->
-        <!-- Payment Method -->
-<div class="bg-white p-8 rounded-2xl shadow-lg">
-  <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-4">Payment Method</h2>
-  <div class="space-y-4">
-    <!-- COD -->
-    <label class="flex items-center space-x-3 cursor-pointer">
-      <input type="radio" name="paymentMethod" value="cod" class="h-5 w-5 text-yellow-600 focus:ring-yellow-600" checked>
-      <span class="text-gray-700 font-medium">Cash on Delivery</span>
-    </label>
-    
-    <!-- Online -->
-    <label class="flex items-center space-x-3 cursor-pointer">
-      <input type="radio" name="paymentMethod" value="online" class="h-5 w-5 text-yellow-600 focus:ring-yellow-600">
-      <span class="text-gray-700 font-medium">Online Payment (UPI / Wallet / Card)</span>
-    </label>
-  </div>
+        <div class="bg-white p-8 rounded-2xl shadow-lg">
+          <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-4">Payment Method</h2>
+          <div class="space-y-4">
+            <label class="flex items-center space-x-3 cursor-pointer">
+              <input type="radio" name="paymentMethod" value="cod" class="h-5 w-5 text-yellow-600 focus:ring-yellow-600" checked>
+              <span class="text-gray-700 font-medium">Cash on Delivery</span>
+            </label>
+            
+            <label class="flex items-center space-x-3 cursor-pointer">
+              <input type="radio" name="paymentMethod" value="online" class="h-5 w-5 text-yellow-600 focus:ring-yellow-600">
+              <span class="text-gray-700 font-medium">Online Payment (UPI / Wallet / Card)</span>
+            </label>
 
-  <div class="pt-6">
-    <button type="submit" form="checkoutForm" id="reviewOrderBtn" 
-      class="w-full bg-yellow-600 text-white py-3 rounded-full font-semibold hover:bg-yellow-700 transition text-lg">
-      Review Your Order
-    </button>
-    <p id="checkout-error-message" class="text-red-600 text-center mt-3"></p>
-  </div>
-</div>
+            <label class="flex items-center space-x-3 cursor-pointer">
+                <input type="radio" name="paymentMethod" value="upi" class="h-5 w-5 text-yellow-600 focus:ring-yellow-600">
+                <span class="text-gray-700 font-medium">UPI (Pay with QR Code)</span>
+            </label>
+            </div>
+
+          <div class="pt-6">
+            <button type="submit" form="checkoutForm" id="reviewOrderBtn" class="w-full bg-yellow-600 text-white py-3 rounded-full font-semibold hover:bg-yellow-700 transition text-lg">
+              Review Your Order
+            </button>
+            <p id="checkout-error-message" class="text-red-600 text-center mt-3"></p>
+          </div>
+        </div>
 
       </div>
-
-      <!-- Order Summary -->
-      <div class="bg-white p-8 rounded-2xl shadow-lg">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-4">Order Summary</h2>
-        <div id="checkoutOrderSummary" class="space-y-3 mb-6">
-          <div class="text-center py-10 text-gray-500">
+<div class="bg-white p-8 rounded-2xl shadow-lg">
+    <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-4">Order Summary</h2>
+    <div id="checkoutOrderSummary" class="space-y-3 mb-6">
+        <div class="text-center py-10 text-gray-500">
             <i class="fas fa-spinner fa-spin text-2xl"></i>
             <p>Loading summary...</p>
-          </div>
         </div>
-        <div class="border-t pt-4 space-y-2">
-          <div class="flex justify-between text-lg">
+    </div>
+    <div class="border-t pt-4 space-y-2">
+        <div class="flex justify-between text-lg">
             <span>Subtotal</span>
             <span id="checkoutSubtotal">₹0.00</span>
-          </div>
-          <div class="flex justify-between text-lg">
+        </div>
+
+        <div class="flex justify-between text-lg">
+            <span>GST (3%)</span>
+            <span id="checkoutGst">₹0.00</span>
+        </div>
+
+        <div class="flex justify-between text-lg">
             <span>Shipping</span>
             <span class="text-green-600">FREE</span>
-          </div>
-          <div class="flex justify-between font-bold text-2xl pt-2">
+        </div>
+        <div class="flex justify-between font-bold text-2xl pt-2">
             <span>Total</span>
             <span id="checkoutTotalPrice">₹0.00</span>
-          </div>
         </div>
-      </div>
+    </div>
+</div>
     </div>
   </div>
 </section>
@@ -638,23 +707,22 @@
       </div>
       
       <div class="bg-gray-100 p-6 rounded-lg">
-  <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Order Summary:</h2>
-  <div class="space-y-2">
-    <div class="flex justify-between">
-      <span>Subtotal</span>
-      <span id="confirm-subtotal">₹0.00</span>
-    </div>
-    <div class="flex justify-between">
-      <span>Payment Method</span>
-      <span id="confirm-payment">-</span>
-    </div>
-    <div class="flex justify-between font-bold text-xl pt-2">
-      <span>Total</span>
-      <span id="confirm-total">₹0.00</span>
-    </div>
-  </div>
-</div>
-
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Order Summary:</h2>
+        <div class="space-y-2">
+          <div class="flex justify-between">
+            <span>Subtotal</span>
+            <span id="confirm-subtotal">₹0.00</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Payment Method</span>
+            <span id="confirm-payment">-</span>
+          </div>
+          <div class="flex justify-between font-bold text-xl pt-2">
+            <span>Total</span>
+            <span id="confirm-total">₹0.00</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="mt-8 text-center">
@@ -663,13 +731,53 @@
       </button>
       <button onclick="showCheckOutPage()" class="mt-4 text-sm text-gray-600 hover:underline">Go Back & Edit</button>
     </div>
-      <!-- 🔽 Loader Block (hidden initially) -->
+
     <div id="loading" style="display:none; margin-top:20px; text-align:center;">
       <p class="text-gray-700 font-medium">Processing your order...</p>
       <div class="spinner"></div>
     </div>
+
   </div>
 </section>
+
+<div id="upi-qr-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full text-center">
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">Pay with UPI</h2>
+        <p class="text-gray-600 mb-4">Scan the QR code and follow the steps below.</p>
+        <p class="mb-6 font-bold text-xl" id="upi-payable-amount">Amount: ₹0.00</p>
+        
+        <div class="flex flex-col md:flex-row items-start justify-center gap-6 md:gap-8">
+            
+            <div class="flex-shrink-0 mx-auto">
+                <canvas id="upi-qr-code" class="border-4 border-gray-200 rounded-lg"></canvas>
+            </div>
+            
+            <div class="text-left bg-gray-50 p-4 rounded-lg border w-full">
+                <h3 class="font-semibold text-gray-800 mb-2">Instructions:</h3>
+                <ol class="list-decimal list-inside text-sm text-gray-600 space-y-2">
+                    <li>Complete the payment on your mobile.</li>
+                    <li>On the payment success screen, find the <strong>UPI Reference ID</strong> (12 digits).</li>
+                    <li>Type that ID into the box below and click 'Confirm'.</li>
+                </ol>
+            </div>
+
+        </div>
+        
+        <div class="mt-6">
+            <label for="upi-transaction-id" class="block text-sm font-medium text-gray-700 mb-2">
+                Enter UPI Transaction ID
+            </label>
+            <input type="text" id="upi-transaction-id" placeholder="12-digit UPI reference number" class="w-full p-3 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-yellow-600">
+        </div>
+        
+        <div class="mt-6 space-y-3">
+             <button id="final-upi-submit-btn" class="w-full bg-green-600 text-white py-3 rounded-full font-semibold hover:bg-green-700 transition text-lg">
+                Confirm & Place Order
+            </button>
+             <button id="close-modal-btn" class="w-full text-sm text-gray-600 hover:underline">Cancel</button>
+        </div>
+    </div>
+</div>
 <section id="about-section" class="hidden py-5 min-h-screen bg-gradient-to-br from-yellow-50 to-yellow-100 mt-16 md:mt-20">
   <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="bg-gray-800 backdrop-blur-md shadow-xl mb-10 rounded-2xl p-8 md:p-10 transition-all transform hover:shadow-yellow-200 animate-fade-up" data-animate>
@@ -975,102 +1083,144 @@
 </section>
 
 <section id="custom-design" class="hidden bg-gradient-to-b from-yellow-50 via-yellow-100 to-yellow-50 py-20 px-4 md:px-10 mt-16 md:mt-20">
-  <div class="max-w-6xl mx-auto rounded-3xl shadow-xl bg-white p-10 md:p-16 border border-yellow-300">
-    <div class="text-center mb-12">
-      <h2 class="text-4xl md:text-5xl font-bold text-yellow-800 font-serif">Request a Custom Jewelry Design</h2>
-      <p class="mt-4 text-gray-600 text-lg max-w-2xl mx-auto">
-        Bring your dream design to life. Share your idea and we'll craft it into a unique masterpiece.
-      </p>
+    <div class="max-w-6xl mx-auto rounded-3xl shadow-xl bg-white p-10 md:p-16 border border-yellow-300">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl md:text-5xl font-bold text-yellow-800 font-serif">Request a Custom Jewelry Design</h2>
+            <p class="mt-4 text-gray-600 text-lg max-w-2xl mx-auto">
+                Bring your dream design to life. Share your idea and we'll craft it into a unique masterpiece.
+            </p>
+        </div>
+
+        <form id="customDesignForm" class="grid grid-cols-1 md:grid-cols-2 gap-8" enctype="multipart/form-data">
+            <div class="space-y-6">
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                    <input type="text" id="uName" name="name" required placeholder="Enter Your Name"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600" />
+                </div>
+
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                    <input type="email" id="emailid" name="email" required placeholder="Enter Your Email"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600" />
+                </div>
+
+                <div>
+                    <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                    <input type="tel" id="phone" name="phone" required placeholder="Enter Your Phone No"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600" />
+                </div>
+
+                <div>
+                    <label for="jewelryType" class="block text-sm font-medium text-gray-700 mb-1">Jewelry Type *</label>
+                    <select id="jewelryType" name="jewelryType" required
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
+                        <option disabled selected value="">Select Type</option>
+                        <option value="ring">Ring</option>
+                        <option value="necklace">Necklace</option>
+                        <option value="earrings">Earrings</option>
+                        <option value="bracelet">Bracelet</option>
+                        <option value="haram">Haram</option>
+                        <option value="others">Others</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div>
+                    <label for="metalType" class="block text-sm font-medium text-gray-700 mb-1">Metal Type *</label>
+                    <select id="metalType" name="metalType" required
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
+                        <option disabled selected value="">Select Metal</option>
+                        <option value="covering-gold">Covering Jewelry</option>
+                        <option value="covering-gold-polish">Covering Jewelry Gold Polished</option>
+                        <option value="aympon">Aympon</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Design Description *</label>
+                    <textarea id="description" name="description" rows="5" required
+                        placeholder="Describe the shape, stones, ideas..."
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"></textarea>
+                </div>
+
+                <div id="ai-image-preview-container" class="mt-4 p-3 border border-yellow-300 rounded-lg bg-yellow-50 hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">AI Generated Image</label>
+                    <img id="ai-selected-image" src="" alt="AI Generated Design" class="w-full max-w-[200px] h-auto mx-auto rounded-lg shadow-md mt-2"/>
+                    <p class="text-xs text-gray-500 mt-1 text-center">Your chosen AI design will be submitted.</p>
+                </div>
+
+                <div>
+                    <label for="image" class="block text-sm font-medium text-gray-700 mb-1">Upload Reference Image (Optional)</label>
+                    <input type="file" id="image" name="image" accept="image/*"
+                        class="w-full p-3 border border-gray-300 rounded-lg bg-white file:bg-yellow-50 file:text-yellow-700 file:rounded-full file:px-4 file:py-2 hover:file:bg-yellow-100" />
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="budget" class="block text-sm font-medium text-gray-700 mb-1">Budget (₹)</label>
+                        <input type="number" id="budget" name="budget" placeholder="e.g., 3000"
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600" />
+                    </div>
+                    <div>
+                        <label for="deliveryDate" class="block text-sm font-medium text-gray-700 mb-1">Delivery Date</label>
+                        <input type="date" id="deliveryDate" name="deliveryDate"
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-1 md:col-span-2 text-center mt-10 space-y-4">
+                <button type="button" id="generate-and-submit-btn"
+                    class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-10 rounded-full shadow-lg transition-all duration-200">
+                    Generate AI Designs
+                </button>
+                
+                 <button type="submit" id="final-submit-btn" class="hidden bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-10 rounded-full shadow-lg transition-all duration-200">
+                 Final Submit Request
+                 </button>
+            </div>
+        </form>
+
+        <div id="formMessage" class="hidden text-sm font-semibold p-4 rounded-lg"></div>
     </div>
-
-    <!-- Form -->
-    <form id="customDesignForm" class="grid grid-cols-1 md:grid-cols-2 gap-8" enctype="multipart/form-data">
-      <div class="space-y-6">
-        <div>
-          <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
-          <input type="text" id="uName" name="name" required placeholder="Enter Your Name"
-            class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600" />
-        </div>
-
-        <div>
-          <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-          <input type="email" id="emailid" name="email" required placeholder="Enter Your EmailId"
-            class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600" />
-        </div>
-
-        <div>
-          <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
-          <input type="tel" id="phone" name="phone" required placeholder="Enter Your Phone Number"
-            class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600" />
-        </div>
-
-        <div>
-          <label for="jewelryType" class="block text-sm font-medium text-gray-700 mb-1">Jewelry Type *</label>
-          <select id="jewelryType" name="jewelryType" required
-            class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
-            <option disabled selected value="">Select Type</option>
-            <option value="ring">Ring</option>
-            <option value="necklace">Necklace</option>
-            <option value="earrings">Earrings</option>
-            <option value="bracelet">Bracelet</option>
-            <option value="haram">Haram</option>
-            <option value="others">Others</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="space-y-6">
-        <div>
-          <label for="metalType" class="block text-sm font-medium text-gray-700 mb-1">Metal Type *</label>
-          <select id="metalType" name="metalType" required
-            class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600">
-            <option disabled selected value="">Select Metal</option>
-            <option value="covering-gold">Covering Jewelry</option>
-            <option value="covering-gold-polish">Covering Jewelry Gold Polished</option>
-            <option value="aympon">Aympon</option>
-          </select>
-        </div>
-
-        <div>
-          <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Design Description *</label>
-          <textarea id="description" name="description" rows="5" required
-            placeholder="Describe the shape, stones, ideas..."
-            class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"></textarea>
-        </div>
-
-        <div>
-          <label for="image" class="block text-sm font-medium text-gray-700 mb-1">Upload Reference Image (Optional)</label>
-          <input type="file" id="image" name="image" accept="image/*"
-            class="w-full p-3 border border-gray-300 rounded-lg bg-white file:bg-yellow-50 file:text-yellow-700 file:rounded-full file:px-4 file:py-2 hover:file:bg-yellow-100" />
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label for="budget" class="block text-sm font-medium text-gray-700 mb-1">Budget (₹)</label>
-            <input type="number" id="budget" name="budget" placeholder="e.g., 3000"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600" />
-          </div>
-          <div>
-            <label for="deliveryDate" class="block text-sm font-medium text-gray-700 mb-1">Delivery Date</label>
-            <input type="date" id="deliveryDate" name="deliveryDate"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600" />
-          </div>
-        </div>
-      </div>
-
-      <div class="col-span-1 md:col-span-2 text-center mt-10">
-        <button type="submit" id="submitBtn"
-          class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-10 rounded-full shadow-lg transition-all duration-200">
-          Submit Request
-        </button>
-      </div>
-    </form>
-
-    <!-- Message box OUTSIDE form -->
-    <div id="formMessage" class="hidden text-sm font-semibold p-4 rounded-lg"></div>
-  </div>
 </section>
 
+<div id="selection-modal" class="hidden fixed z-50 left-0 top-0 w-full h-full overflow-auto bg-black bg-opacity-60 flex items-center justify-center">
+    <div class="modal-content bg-white p-6 rounded-lg w-11/12 max-w-3xl">
+        <span class="close-btn text-gray-500 float-right text-3xl font-bold cursor-pointer hover:text-black">&times;</span>
+        <h2 class="text-2xl font-bold text-center mb-4">Choose Your Favorite Design</h2>
+        <div id="image-options" class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-5">
+            </div>
+        <div id="modal-loader" class="text-center p-12 hidden">
+            <p>Generating designs... Please wait... 🤖</p>
+        </div>
+        <div class="text-center">
+             <button id="confirm-selection-btn"
+                class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-8 rounded-full">
+                Confirm Selection
+            </button>
+        </div>
+    </div>
+</div>
+<div id="selection-modal" class="modal hidden fixed z-50 left-0 top-0 w-full h-full overflow-auto bg-black bg-opacity-60">
+    <div class="modal-content bg-white mx-auto mt-[10%] p-6 border rounded-lg w-11/12 max-w-3xl">
+        <span class="close-btn text-gray-500 float-right text-3xl font-bold cursor-pointer hover:text-black">&times;</span>
+        <h2 class="text-2xl font-bold text-center mb-4">Choose Your Favorite Design</h2>
+        <div id="image-options" class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-5">
+            </div>
+        <div id="modal-loader" class="text-center p-12 hidden">
+            <p>Generating designs... Please wait... 🤖</p>
+        </div>
+        <div class="text-center">
+             <button id="confirm-selection-btn"
+                class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-8 rounded-full">
+                Confirm Selection
+            </button>
+        </div>
+    </div>
+</div>
 
 <footer id="contact-section" class="bg-gray-800 text-white py-2">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
