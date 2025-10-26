@@ -176,6 +176,19 @@
 .modal-content {
     animation: fadeIn 0.5s;
 }
+.modal-content #loading .spinner {
+  border: 4px solid #f3f3f3;       /* light grey */
+  border-top: 4px solid #4caf50;   /* green line */
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 10px auto;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-20px); }
@@ -231,6 +244,70 @@
   100% {
     transform: rotate(360deg);
   }
+}
+  .tab-btn.active {
+        border-bottom-color: #ca8a04; /* yellow-600 */
+        color: #ca8a04;
+        font-weight: 600;
+    }
+    .tab-btn {
+        border-bottom: 2px solid transparent;
+    }
+
+    /* Spinner-ai sutthavaippatharkana Animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Ungal HTML-il ulla 'animate-spin' class-ukku intha animation-ai kodukirom */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Kele ullavai, antha spinner-in size matrum color-ukku. 
+   Oruvelai ithuvum work aagavillai enraal, ithaiyum serthukollungal. */
+
+.relative { 
+    position: relative; 
+}
+.w-16 { 
+    width: 4rem; /* 64px */
+}
+.h-16 { 
+    height: 4rem; /* 64px */
+}
+.mx-auto { 
+    margin-left: auto;
+    margin-right: auto;
+}
+.absolute { 
+    position: absolute; 
+}
+.inset-0 { 
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+.border-4 { 
+    border-width: 4px; 
+}
+.border-yellow-200 { 
+    border-color: #fef08a; /* Tailwind-in yellow-200 color */
+}
+.rounded-full { 
+    border-radius: 9999px; 
+}
+.border-t-yellow-600 {
+    /* Miga mukkiyam: Mel paguthi border mattum veru color-il irukka vendum */
+    /* Athanaal, transparent aakki, mel paguthikku mattum color kodukirom */
+    border-color: transparent; 
+    border-top-color: #ca8a04; /* Tailwind-in yellow-600 color */
 }
   </style>
 </head>
@@ -741,40 +818,108 @@
 </section>
 
 <div id="upi-qr-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full text-center">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-2xl w-full text-center">
         <h2 class="text-2xl font-bold text-gray-800 mb-2">Pay with UPI</h2>
-        <p class="text-gray-600 mb-4">Scan the QR code and follow the steps below.</p>
-        <p class="mb-6 font-bold text-xl" id="upi-payable-amount">Amount: ₹0.00</p>
+        <!-- <p class="text-gray-600 mb-4">Choose your preferred payment method.</p> -->
+        <p class="mb-6 font-bold text-xl" id="upi-payable-amount">Amount: ₹100.00</p>
         
-        <div class="flex flex-col md:flex-row items-start justify-center gap-6 md:gap-8">
-            
-            <div class="flex-shrink-0 mx-auto">
-                <canvas id="upi-qr-code" class="border-4 border-gray-200 rounded-lg"></canvas>
-            </div>
-            
-            <div class="text-left bg-gray-50 p-4 rounded-lg border w-full">
-                <h3 class="font-semibold text-gray-800 mb-2">Instructions:</h3>
-                <ol class="list-decimal list-inside text-sm text-gray-600 space-y-2">
-                    <li>Complete the payment on your mobile.</li>
-                    <li>On the payment success screen, find the <strong>UPI Reference ID</strong> (12 digits).</li>
-                    <li>Type that ID into the box below and click 'Confirm'.</li>
-                </ol>
-            </div>
+        <!-- Tab Buttons -->
+        <div class="border-b border-gray-200 mb-4">
+            <nav class="flex justify-center -mb-px space-x-8" aria-label="Tabs">
+                <button id="tab-btn-qr" class="tab-btn active whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm" data-tab="qr">
+                    Scan QR Code
+                </button>
+                <button id="tab-btn-upi" class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700" data-tab="upi">
+                    Pay to UPI ID
+                </button>
+            </nav>
+        </div>
 
+        <!-- Tab Panels -->
+        <div>
+            <!-- Tab 1: Scan QR Code -->
+            <div id="tab-panel-qr" class="tab-panel">
+                <div class="flex flex-col md:flex-row items-start justify-center gap-6 md:gap-8">
+                    <!-- QR Code -->
+                    <div class="flex-shrink-0 mx-auto">
+                        <canvas id="upi-qr-code" class="border-4 border-gray-200 rounded-lg"></canvas>
+                    </div>
+                    <!-- Instructions for QR -->
+                    <div class="text-left bg-gray-50 p-4 rounded-lg border w-full">
+                        <h3 class="font-semibold text-gray-800 mb-2">Instructions (Scan QR):</h3>
+                        <ol class="list-decimal list-inside text-sm text-gray-600 space-y-2">
+                            <li>Open your UPI app (GPay, PhonePe, etc.).</li>
+                            <li>Scan the QR code shown on the left.</li>
+                            <li>Complete the payment on your mobile.</li>
+                            <li>On the payment success screen, find the <strong>UPI Reference ID</strong> (12 digits).</li>
+                            <li>Type that ID into the box below and click 'Confirm'.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab 2: Pay to UPI ID -->
+            <div id="tab-panel-upi" class="tab-panel hidden">
+                <div class="flex flex-col items-start justify-center gap-6">
+                    
+                    <!-- 
+                      UI FIX V2 INGA THAAN PANNIRUKEN 
+                    -->
+                    <div class="w-full text-center">
+                        <p class="text-sm text-gray-600 mb-2">Pay to the following UPI ID:</p>
+                        <!-- 
+                          MODIFICATION V2:
+                          1. 'max-w-sm' -> 'max-w-md' (Innum konjam extra space)
+                          2. <span>-kulla 'break-all' -> 'break-words'
+                          3. <span>-kulla 'min-w-0' add panniruken (Ithu thaan mukkiyamana fix)
+                        -->
+                        <div class="flex items-center justify-between bg-gray-100 border border-dashed border-gray-400 p-3 rounded-lg max-w-md mx-auto">
+                            <span id="merchant-upi-id" class="text-lg font-bold text-gray-800 break-words text-left pr-2 min-w-0">your-business-upi@okbank</span>
+                            <button id="copy-upi-btn" title="Copy UPI ID" class="ml-2 flex-shrink-0 p-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">
+                                <!-- Simple Copy Icon (SVG) -->
+                                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            </button>
+                        </div>
+                        <span id="copy-success-msg" class="text-green-600 text-sm mt-1 hidden">Copied!</span>
+                    </div>
+                    <!-- 
+                      UI FIX MUDINJITHU 
+                    -->
+
+                    <!-- Instructions for UPI ID -->
+                    <div class="text-left bg-gray-50 p-4 rounded-lg border w-full">
+                        <h3 class="font-semibold text-gray-800 mb-2">Instructions (UPI ID):</h3>
+                        <ol class="list-decimal list-inside text-sm text-gray-600 space-y-2">
+                            <li>Open your UPI app (GPay, PhonePe, etc.).</li>
+                            <li>Select 'Pay to UPI ID'.</li>
+                            <!-- 'break-words' add panniruken -->
+                            <li>Enter or paste the UPI ID: <strong id="merchant-upi-id-instruction" class="text-gray-700 break-words">your-business-upi@okbank</strong></li>
+                            <li>Enter the amount: <strong id="upi-amount-instruction" class="text-gray-700">₹100.00</strong></li>
+                            <li>Complete the payment.</li>
+                            <li>On the payment success screen, find the <strong>UPI Reference ID</strong> (12 digits).</li>
+                            <li>Type that ID into the box below and click 'Confirm'.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
         </div>
         
-        <div class="mt-6">
+        <!-- Common Section: Transaction ID Input -->
+        <div class="mt-6 border-t pt-6">
             <label for="upi-transaction-id" class="block text-sm font-medium text-gray-700 mb-2">
-                Enter UPI Transaction ID
+                Enter UPI Transaction ID (Common for both methods)
             </label>
-            <input type="text" id="upi-transaction-id" placeholder="12-digit UPI reference number" class="w-full p-3 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-yellow-600">
+            <input type="text" id="upi-transaction-id" placeholder="12-digit UPI reference number" class="w-full max-w-md mx-auto p-3 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-yellow-600">
+            <!-- Error message placeholder -->
+            <p id="upi-txn-error" class="text-red-600 text-sm mt-2 hidden">Please enter a valid 12-digit UPI reference number.</p>
         </div>
         
+        <!-- Common Section: Buttons -->
         <div class="mt-6 space-y-3">
-             <button id="final-upi-submit-btn" class="w-full bg-green-600 text-white py-3 rounded-full font-semibold hover:bg-green-700 transition text-lg">
-                Confirm & Place Order
-            </button>
-             <button id="close-modal-btn" class="w-full text-sm text-gray-600 hover:underline">Cancel</button>
+             <button id="final-upi-submit-btn" class="w-full max-w-md mx-auto bg-green-600 text-white py-3 rounded-full font-semibold hover:bg-green-700 transition text-lg">
+                 Confirm & Place Order
+             </button>
+             <button id="close-modal-btn" class="w-full max-w-md mx-auto text-sm text-gray-600 hover:underline">Cancel</button>
         </div>
     </div>
 </div>
@@ -1191,16 +1336,24 @@
     <div class="modal-content bg-white p-6 rounded-lg w-11/12 max-w-3xl">
         <span class="close-btn text-gray-500 float-right text-3xl font-bold cursor-pointer hover:text-black">&times;</span>
         <h2 class="text-2xl font-bold text-center mb-4">Choose Your Favorite Design</h2>
+        
         <div id="image-options" class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-5">
             </div>
+
         <div id="modal-loader" class="text-center p-12 hidden">
-            <p>Generating designs... Please wait... 🤖</p>
+            <div class="relative w-16 h-16 mx-auto">
+                <div class="absolute inset-0 border-4 border-yellow-200 rounded-full"></div>
+                <div class="absolute inset-0 border-4 border-t-yellow-600 rounded-full animate-spin"></div>
+            </div>
+            
+            <p class="mt-6 text-xl font-semibold text-yellow-800">Creating your customize design... 🤖</p>
+            <p class="mt-2 text-gray-600">Wait few minutes.</p>
         </div>
         <div class="text-center">
              <button id="confirm-selection-btn"
-                class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-8 rounded-full">
-                Confirm Selection
-            </button>
+                 class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-8 rounded-full">
+                 Confirm Selection
+             </button>
         </div>
     </div>
 </div>
@@ -1210,8 +1363,12 @@
         <h2 class="text-2xl font-bold text-center mb-4">Choose Your Favorite Design</h2>
         <div id="image-options" class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-5">
             </div>
+       <div id="loading" style="display:none; margin-top:20px; text-align:center;">
+            <div class="spinner"></div>
+         </div>
         <div id="modal-loader" class="text-center p-12 hidden">
-            <p>Generating designs... Please wait... 🤖</p>
+           <p>Wait few minutes.</p>
+            <p>Creating your customize design... 🤖</p>
         </div>
         <div class="text-center">
              <button id="confirm-selection-btn"

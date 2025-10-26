@@ -1132,6 +1132,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const formMessage = document.getElementById("formMessage");
   const descriptionInput = document.getElementById("description");
   const fileInput = document.getElementById("image");
+  const deliveryDateInput = document.getElementById("deliveryDate");
 
   // AI Elements
   const generateBtn = document.getElementById("generate-and-submit-btn");
@@ -1167,6 +1168,20 @@ document.addEventListener("DOMContentLoaded", () => {
         ? "bg-green-100 text-green-700"
         : "bg-red-100 text-red-700"
     }`;
+     const selectedDateValue = deliveryDateInput.value;
+        if (!selectedDateValue) {
+             showMessage("❌ Please select a delivery date.", false);
+            return;
+        }
+
+         const selectedDate = new Date(selectedDateValue);
+         const today = new Date();
+         today.setHours(0, 0, 0, 0); 
+
+         if (selectedDate <= today) {
+             showMessage("❌ Please select a future date. Today or past dates are not allowed.", false);
+           return;
+         }
     formMessage.classList.remove("hidden");
   };
 
@@ -1796,7 +1811,14 @@ let finalOrderData = {}; // finalOrderData-ஐ இங்கே வரையற�
 document.addEventListener("DOMContentLoaded", function() {
 
     // ===================================================================
-    // 1. Element Selections
+    // 1. Configuration
+    // ===================================================================
+    // !! MUKKIYAM: Intha values-a ungalodathukku maathunga !!
+    const MERCHANT_UPI_ID = "padmakumar745@okicici"; // Unga code-la irunthu eduthathu
+    const MERCHANT_NAME = "Padmakumar"; // Unga code-la irunthu eduthathu
+
+    // ===================================================================
+    // 2. Element Selections
     // ===================================================================
     const checkoutForm = document.getElementById('checkoutForm');
     const reviewOrderBtn = document.getElementById('reviewOrderBtn');
@@ -1805,28 +1827,43 @@ document.addEventListener("DOMContentLoaded", function() {
     const CheckOutSection = document.getElementById('checkout-section');
     const confirmationSection = document.getElementById('confirmation-section');
 
-    // UPI Modal Elements for Manual Confirmation
+    // --- Modal Elements (Unga + Enoda selections serthu) ---
     const upiModal = document.getElementById('upi-qr-modal');
     const closeModalBtn = document.getElementById('close-modal-btn');
     const finalUpiSubmitBtn = document.getElementById('final-upi-submit-btn');
     const upiTransactionIdInput = document.getElementById('upi-transaction-id');
     const upiPayableAmount = document.getElementById('upi-payable-amount');
+    const amountInstructionText = document.getElementById('upi-amount-instruction');
+    const qrCanvas = document.getElementById('upi-qr-code');
+
+    // Tab elements
+    const tabBtnQr = document.getElementById('tab-btn-qr');
+    const tabBtnUpi = document.getElementById('tab-btn-upi');
+    const tabPanelQr = document.getElementById('tab-panel-qr');
+    const tabPanelUpi = document.getElementById('tab-panel-upi');
+
+    // UPI ID elements
+    const merchantUpiIdText = document.getElementById('merchant-upi-id');
+    const merchantUpiIdInstruction = document.getElementById('merchant-upi-id-instruction');
+    const copyUpiBtn = document.getElementById('copy-upi-btn');
+    const copySuccessMsg = document.getElementById('copy-success-msg');
+    const upiTxnError = document.getElementById('upi-txn-error');
 
     // Global variable to hold order data
     let finalOrderData = {};
 
 
     // ===================================================================
-    // 2. Main Event Listeners
+    // 3. Main Event Listeners (Unga code)
     // ===================================================================
 
     // "Review Your Order" button
     if (reviewOrderBtn) {
         reviewOrderBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            if (checkoutForm.checkValidity()) {
+            if (checkoutForm && checkoutForm.checkValidity()) {
                 showConfirmationPage();
-            } else {
+            } else if (checkoutForm) {
                 checkoutForm.reportValidity();
             }
         });
@@ -1852,60 +1889,187 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (finalOrderData.paymentMethod === "cod") {
                     await placeOrder(finalOrderData);
                 } else if (finalOrderData.paymentMethod === "online") {
-                    // initiateCashfreePayment(finalOrderData); // Your Cashfree logic would go here
+                    // initiateCashfreePayment(finalOrderData); // Your Cashfree logic
                 } else if (finalOrderData.paymentMethod === "upi") {
-                    initiateUpiPayment(finalOrderData);
+                    // **MODIFIED:** Unga 'initiateUpiPayment' pathila 'showUpiModal' call pannurom
+                    showUpiModal(finalOrderData.totalAmount);
                 }
             } catch (error) {
-                alert(`An error occurred: ${error.message}`);
+                // 'alert' pathila console error use pannalam
+                console.error(`An error occurred: ${error.message}`);
+                // Inga oru custom error message UI kaattalam
             }
         });
     }
 
+    // ===================================================================
+    // 4. Modal Event Listeners (Merged)
+    // ===================================================================
+
     // "Confirm & Place Order" button inside the UPI Modal
     if (finalUpiSubmitBtn) {
         finalUpiSubmitBtn.addEventListener('click', async () => {
-            const transactionId = upiTransactionIdInput.value.trim();
-            if (!transactionId || transactionId.length < 12) {
-                alert("Please enter a valid 12-digit UPI Transaction ID.");
-                return;
+            const transactionId = upiTransactionIdInput ? upiTransactionIdInput.value.trim() : '';
+            
+            // **MODIFIED:** Better validation + Error message UI (alert pathila)
+            if (transactionId && transactionId.length >= 12 && /^\d+$/.test(transactionId)) {
+                // Validation success
+                if(upiTxnError) upiTxnError.classList.add('hidden');
+                if(upiTransactionIdInput) upiTransactionIdInput.classList.remove('border-red-500');
+
+                finalUpiSubmitBtn.textContent = 'Verifying...';
+                finalUpiSubmitBtn.disabled = true;
+
+                finalOrderData.transactionId = transactionId;
+                await placeOrder(finalOrderData); // Unga function-a call pannurom
+                
+                // placeOrder success aagala-na, button-a reset pannurom
+                // (placeOrder 'finally' block la ithu iruntha nallathu)
+                finalUpiSubmitBtn.textContent = 'Confirm & Place Order';
+                finalUpiSubmitBtn.disabled = false;
+
+            } else {
+                // Validation failed
+                console.error("Invalid UPI ID");
+                if (upiTxnError) {
+                    upiTxnError.textContent = "Please enter a valid 12-digit UPI reference number.";
+                    upiTxnError.classList.remove('hidden');
+                }
+                if (upiTransactionIdInput) upiTransactionIdInput.classList.add('border-red-500');
             }
-            finalOrderData.transactionId = transactionId;
-            await placeOrder(finalOrderData);
         });
     }
 
     // "Cancel" button in the UPI Modal
     if (closeModalBtn) {
         closeModalBtn.addEventListener('click', () => {
-            upiModal.style.display = 'none';
+            // **MODIFIED:** 'style.display' pathila 'hideUpiModal' function use pannurom
+            hideUpiModal();
         });
     }
-
-    // ===================================================================
-    // 3. Helper and Page Display Functions
-    // ===================================================================
     
-    // Shows the UPI modal with the QR code
-    function initiateUpiPayment(orderData) {
-        const yourUpiId = "padmakumar745@okicici";
-        const yourName = "Padmakumar";
-        const amount = orderData.totalAmount.toFixed(2);
-        const encodedName = encodeURIComponent(yourName);
-        const upiString = `upi://pay?pa=${yourUpiId}&pn=${encodedName}&am=${amount}&cu=INR&tn=OrderPayment`;
-
-        new QRious({
-            element: document.getElementById('upi-qr-code'),
-            value: upiString, size: 200, padding: 15
-        });
-
-        upiPayableAmount.textContent = `Amount: ₹${amount}`;
-        upiModal.style.display = 'flex';
+    // --- New Listeners from Base Script ---
+    
+    // Tab switching
+    if (tabBtnQr && tabBtnUpi) {
+        tabBtnQr.addEventListener('click', () => switchTab('qr'));
+        tabBtnUpi.addEventListener('click', () => switchTab('upi'));
     }
+
+    // Copy UPI ID
+    if (copyUpiBtn) {
+        copyUpiBtn.addEventListener('click', () => {
+            const tempTextarea = document.createElement('textarea');
+            tempTextarea.value = MERCHANT_UPI_ID;
+            document.body.appendChild(tempTextarea);
+            tempTextarea.select();
+            try {
+                document.execCommand('copy');
+                if (copySuccessMsg) {
+                    copySuccessMsg.classList.remove('hidden');
+                    setTimeout(() => {
+                        copySuccessMsg.classList.add('hidden');
+                    }, 2000);
+                }
+            } catch (err) {
+                console.error('Failed to copy UPI ID: ', err);
+            }
+            document.body.removeChild(tempTextarea);
+        });
+    }
+    
+    // Remove error border on input
+    if (upiTransactionIdInput) {
+        upiTransactionIdInput.addEventListener('input', () => {
+            if (upiTxnError) upiTxnError.classList.add('hidden');
+            upiTransactionIdInput.classList.remove('border-red-500');
+        });
+    }
+
+    // ===================================================================
+    // 5. Helper and Page Display Functions (Merged)
+    // ===================================================================
+
+    // --- New Modal Functions ---
+    
+    // Intha function-a unga 'Pay' button-oda call pannanum
+    function showUpiModal(amount) {
+        if (typeof amount !== 'number' || amount <= 0) {
+            console.error("Invalid amount pass pannirukeenga:", amount);
+            return;
+        }
+        updatePaymentDetails(amount); // QR code & amount update pannum
+        switchTab('qr'); // Default-a QR tab-ku reset pannurom
+        if (upiTransactionIdInput) upiTransactionIdInput.value = '';
+        if (upiTxnError) upiTxnError.classList.add('hidden');
+        if (upiTransactionIdInput) upiTransactionIdInput.classList.remove('border-red-500');
+        
+        if (upiModal) {
+            upiModal.classList.remove('hidden');
+            upiModal.classList.add('flex');
+        }
+    }
+
+    function hideUpiModal() {
+        if (upiModal) {
+            upiModal.classList.add('hidden');
+            upiModal.classList.remove('flex');
+        }
+    }
+
+    function generateQRCode(amount) {
+        const upiString = `upi://pay?pa=${MERCHANT_UPI_ID}&pn=${encodeURIComponent(MERCHANT_NAME)}&am=${amount.toFixed(2)}&cu=INR&tn=OrderPayment`;
+        
+        if (typeof QRious !== 'undefined' && qrCanvas) {
+            new QRious({
+                element: qrCanvas,
+                value: upiString,
+                size: 200,
+                padding: 12,
+                level: 'M'
+            });
+        } else if (!qrCanvas) {
+            console.error("QR Canvas element ('upi-qr-code') kedaikala.");
+        } else {
+            console.error("QRious library load aagala. QR code generate panna mudiyathu.");
+        }
+    }
+
+    function updatePaymentDetails(amount) {
+        const formattedAmount = `₹${amount.toFixed(2)}`;
+        if(upiPayableAmount) upiPayableAmount.textContent = `Amount: ${formattedAmount}`;
+        if(amountInstructionText) amountInstructionText.textContent = formattedAmount;
+        if(merchantUpiIdText) merchantUpiIdText.textContent = MERCHANT_UPI_ID;
+        if(merchantUpiIdInstruction) merchantUpiIdInstruction.textContent = MERCHANT_UPI_ID;
+        generateQRCode(amount); // QR code generate pannurom
+    }
+
+    function switchTab(tab) {
+        if (tab === 'qr') {
+            if(tabPanelQr) tabPanelQr.classList.remove('hidden');
+            if(tabPanelUpi) tabPanelUpi.classList.add('hidden');
+            if(tabBtnQr) tabBtnQr.classList.add('active');
+            if(tabBtnUpi) {
+                tabBtnUpi.classList.remove('active');
+                tabBtnUpi.classList.add('text-gray-500', 'hover:text-gray-700');
+            }
+        } else if (tab === 'upi') {
+            if(tabPanelUpi) tabPanelUpi.classList.remove('hidden');
+            if(tabPanelQr) tabPanelQr.classList.add('hidden');
+            if(tabBtnUpi) tabBtnUpi.classList.add('active');
+            if(tabBtnQr) {
+                tabBtnQr.classList.remove('active');
+                tabBtnQr.classList.add('text-gray-500', 'hover:text-gray-700');
+            }
+        }
+    }
+    
+    // --- Unga Helper Functions (Keep as is) ---
 
     // A general function to send the final order to your backend
     async function placeOrder(orderData) {
-        if (upiModal) upiModal.style.display = 'none';
+        // **MODIFIED:** 'style.display' pathila 'hideUpiModal' call pannurom
+        hideUpiModal();
         if (loadingSpinner) loadingSpinner.style.display = "block";
 
         try {
@@ -1921,7 +2085,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 throw new Error(result.message || 'Order placement failed.');
             }
         } catch (err) {
-            alert(`Order Error: ${err.message}`);
+            // 'alert' pathila console error use pannalam
+            console.error(`Order Error: ${err.message}`);
+            // Inga oru custom error message UI kaattalam
         } finally {
             if (loadingSpinner) loadingSpinner.style.display = "none";
         }
